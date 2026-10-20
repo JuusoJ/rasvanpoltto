@@ -1,0 +1,2071 @@
+<!doctype html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rasvanpolton katto – simulaattori ja tiede-essee</title>
+<meta name="description" content="Simulaattori ja tiede-essee rasvavaraston energiansiirron ylärajasta: miksi pudotustahdin pitää hidastua, kun rasvaa on vähemmän, ja miten kulutus ja säästöliekki muuttuvat dieetin aikana.">
+<meta name="theme-color" content="#EDF1F0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0C1316" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<!-- Linkkiesikatselu (WhatsApp, Facebook, Slack ym.): vaihda KAYTTAJATUNNUS omaksi GitHub-tunnukseksi -->
+<link rel="canonical" href="https://KAYTTAJATUNNUS.github.io/rasvanpolton-katto/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="fi_FI">
+<meta property="og:site_name" content="Rasvanpolton katto">
+<meta property="og:title" content="Rasvanpolton katto – simulaattori ja tiede-essee">
+<meta property="og:description" content="Paljonko vajetta rasvavarastosi kestää? Säädä omat mittasi ja katso viikkokäyrä, kulutuksen lasku ja tutkimusten luvut.">
+<meta property="og:url" content="https://KAYTTAJATUNNUS.github.io/rasvanpolton-katto/">
+<meta property="og:image" content="https://KAYTTAJATUNNUS.github.io/rasvanpolton-katto/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Rasvanpolton katto: painokäyrä, jonka tahti hidastuu tavoitetta kohti">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400&display=swap">
+<style>
+/* Layout: mittalaite ensin (kehonkoostumuksen sivuprofiili, säätimet, raportti, viikkokäyrä), sen alla yksipalstainen essee (~66 merkkiä) ja lähteet. */
+:root {
+  --paper: #EDF1F0;
+  --bed: #E0E7E6;
+  --card: #F7F9F8;
+  --ink: #14202A;
+  --ink-2: #4A5A65;
+  --ink-3: #6E7E87;
+  --rule: #CBD5D4;
+  --grid: #CFD9D8;
+  --lean: #A23347;
+  --fat: #E0A238;
+  --accent: #1C5D72;
+  --accent-wash: #D3E3E7;
+  --on-accent: #F7F9F8;
+  --c1: #2E6CB0;
+  --c2: #B97A12;
+  --c3: #8E4FA8;
+  --o1: #7AAFC0;
+  --o2: #3E8199;
+  --o3: #15556A;
+  --warn: #9B3A1D;
+  --font-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0C1316; --bed: #111B20; --card: #152129; --ink: #E2E9E8; --ink-2: #A2B1B7; --ink-3: #7C8D95;
+    --rule: #27363D; --grid: #1E2D34; --lean: #C8566A; --fat: #E2AD4C; --accent: #78BBCF; --accent-wash: #18323C;
+    --on-accent: #0C1316; --c1: #4A86CC; --c2: #C08425; --c3: #A266B8; --o1: #3F7F93; --o2: #6FB2C6; --o3: #A8D8E6;
+    --warn: #E58E6B; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0C1316; --bed: #111B20; --card: #152129; --ink: #E2E9E8; --ink-2: #A2B1B7; --ink-3: #7C8D95;
+  --rule: #27363D; --grid: #1E2D34; --lean: #C8566A; --fat: #E2AD4C; --accent: #78BBCF; --accent-wash: #18323C;
+  --on-accent: #0C1316; --c1: #4A86CC; --c2: #C08425; --c3: #A266B8; --o1: #3F7F93; --o2: #6FB2C6; --o3: #A8D8E6;
+  --warn: #E58E6B; color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 15px;
+  line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 48px;
+  -webkit-font-smoothing: antialiased;
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+  z-index: 10; background: var(--paper);
+}
+a { color: var(--accent); text-underline-offset: 2px; }
+button { font: inherit; color: inherit; }
+.wrap { max-width: 1180px; margin: 0 auto; }
+.eyebrow {
+  font-family: var(--font-mono); font-size: .7rem; font-weight: 500; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--ink-2); margin: 0;
+}
+
+/* ---------- otsikko ---------- */
+.masthead { padding-block: 28px 18px; display: grid; gap: 10px; }
+.masthead h1 {
+  margin: 0; font-family: var(--font-display); font-stretch: 68%; font-weight: 780;
+  font-size: clamp(2.5rem, 7vw, 4.4rem); line-height: .92; letter-spacing: -.012em; text-wrap: balance;
+}
+.masthead h1 span { color: var(--fat); }
+.dek { margin: 0; max-width: 44rem; font-family: var(--font-body); font-size: 1.08rem; line-height: 1.5; color: var(--ink-2); text-wrap: pretty; }
+.meta { font-family: var(--font-mono); font-size: .72rem; color: var(--ink-3); letter-spacing: .02em; }
+
+/* ---------- simulaattori ---------- */
+.sim { display: grid; gap: 16px; }
+.sim-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding-block: 4px; border-top: 2px solid var(--ink); padding-top: 10px; }
+.sim-state { font-size: .85rem; color: var(--ink-2); }
+.sim-state b { font-weight: 600; color: var(--ink); }
+.ghost-btn {
+  margin-left: auto; border: 1px solid var(--rule); background: var(--card); border-radius: 999px;
+  padding: 6px 12px; font-size: .82rem; font-weight: 500; cursor: pointer;
+}
+.ghost-btn:hover { border-color: var(--accent); color: var(--accent); }
+.ghost-btn:focus-visible, .step:focus-visible, .play:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.sim-top { display: grid; grid-template-columns: minmax(250px, 320px) minmax(0, 1fr); gap: 20px; align-items: start; }
+
+.stage {
+  background: var(--bed); border-radius: 16px; padding: 14px 14px 12px;
+  display: grid; grid-template-columns: 1fr; gap: 6px; position: relative; overflow: hidden;
+}
+.st-read { display: grid; gap: 2px; }
+.st-top { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-height: 1.3rem; }
+#st-label.pinned { background: var(--accent); color: var(--on-accent); border-radius: 4px; padding: 1px 6px; }
+.st-now {
+  border: 1px solid var(--rule); background: var(--card); border-radius: 999px; padding: 1px 9px;
+  font-family: var(--font-mono); font-size: .7rem; font-weight: 500; letter-spacing: .04em; color: var(--accent); cursor: pointer;
+}
+.st-now:hover { border-color: var(--accent); }
+.st-now:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.linkbtn {
+  border: 0; background: none; padding: 0; font: inherit; color: var(--accent); cursor: pointer;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+.linkbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+.st-big { font-stretch: 80%; font-weight: 650; font-size: 2.1rem; line-height: 1; letter-spacing: -.01em; }
+.st-big small { font-size: .9rem; font-weight: 500; color: var(--ink-2); letter-spacing: 0; }
+.st-sub { font-size: .86rem; color: var(--ink-2); }
+.fig-svg { display: block; width: 100%; height: min(540px, 68vh); touch-action: manipulation; }
+.fig-svg .gl { stroke: var(--grid); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.fig-svg .gl-strong { stroke: var(--ink-3); stroke-width: 1; vector-effect: non-scaling-stroke; opacity: .55; }
+.fig-svg .ruler { stroke: var(--ink-2); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.fig-svg .rl { fill: var(--ink-3); font-family: var(--font-mono); }
+.fig-svg .hl { fill: var(--ink-2); font-family: var(--font-mono); font-weight: 500; }
+.fig-svg .hline { stroke: var(--ink-2); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.fig-svg .fat { fill: var(--fat); }
+.fig-svg .lean { fill: var(--lean); }
+.fig-svg .arm-sep { fill: var(--fat); stroke: var(--bed); stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+.fig-svg .ghost { fill: none; stroke: var(--ink); stroke-width: 1.4; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; opacity: .75; }
+.fig-svg .scan { fill: var(--accent); }
+.fig-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: .8rem; color: var(--ink-2); }
+.fig-legend li { display: flex; align-items: center; gap: 6px; }
+.sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; flex: none; }
+.st-mini { display: none; margin: 0; }
+.st-mini div { display: flex; justify-content: space-between; gap: 8px; border-top: 1px solid var(--rule); padding-top: 4px; }
+.st-mini dt { font-family: var(--font-mono); font-size: .64rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); align-self: center; }
+.st-mini dd { margin: 0; font-size: .82rem; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+.sw-lean { background: var(--lean); }
+.sw-fat { background: var(--fat); }
+.sw-ghost { border: 1.5px dashed var(--ink); border-radius: 3px; }
+
+.controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 28px; }
+.group { display: grid; gap: 14px; align-content: start; min-width: 0; }
+.group > h2 { margin: 0; padding-bottom: 6px; border-bottom: 1px solid var(--rule); }
+.ctl { display: grid; gap: 4px; min-width: 0; }
+.ctl-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.ctl-head label, .ctl-head .lbl { font-weight: 600; font-size: .93rem; }
+.ctl-head output { font-family: var(--font-display); font-stretch: 85%; font-weight: 650; font-size: 1.05rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ctl-row { display: grid; grid-template-columns: 30px minmax(0, 1fr) 30px; gap: 8px; align-items: center; }
+.ctl-note { font-size: .8rem; color: var(--ink-2); min-height: 1.15em; }
+.ctl-note b { color: var(--ink); font-weight: 600; }
+.step {
+  width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--rule); background: var(--card);
+  font-weight: 600; font-size: 1.05rem; line-height: 1; display: grid; place-items: center; cursor: pointer;
+  user-select: none; -webkit-user-select: none; touch-action: manipulation;
+}
+.step:hover { border-color: var(--accent); color: var(--accent); }
+.step:disabled { opacity: .4; cursor: default; }
+
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 30px; margin: 0; background: transparent; cursor: pointer; --p: 50%; }
+input[type=range]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(to right, var(--accent) var(--p), var(--rule) var(--p)); }
+input[type=range]::-moz-range-track { height: 4px; border-radius: 2px; background: var(--rule); }
+input[type=range]::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--accent); }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; margin-top: -8px; border-radius: 50%; background: var(--card); border: 2px solid var(--accent); box-shadow: 0 1px 3px rgb(0 0 0 / .18); }
+input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--card); border: 2px solid var(--accent); box-shadow: 0 1px 3px rgb(0 0 0 / .18); }
+input[type=range]:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+input[type=range]:disabled { opacity: .45; cursor: default; }
+
+.seg { border: 1px solid var(--rule); border-radius: 10px; padding: 3px; margin: 0; display: flex; gap: 3px; background: var(--card); min-width: 0; }
+.seg legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.seg label { flex: 1 1 0; position: relative; min-width: 0; }
+.seg input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.seg span { display: grid; place-items: center; text-align: center; padding: 6px 6px; border-radius: 7px; font-size: .88rem; font-weight: 550; color: var(--ink-2); cursor: pointer; line-height: 1.15; }
+.seg span small { display: block; font-family: var(--font-mono); font-size: .66rem; font-weight: 400; letter-spacing: .02em; opacity: .85; }
+.seg input:checked + span { background: var(--accent); color: var(--on-accent); }
+.seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.seg label:hover input:not(:checked) + span { background: var(--accent-wash); color: var(--ink); }
+
+.stopnote {
+  border: 1px solid var(--rule); border-left: 3px solid var(--warn); background: var(--card); border-radius: 10px;
+  padding: 10px 12px; font-size: .88rem; color: var(--ink); display: grid; gap: 6px;
+}
+.stopnote p { margin: 0; }
+
+/* raportti */
+.report { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.card { background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.card h3 { margin: 0; }
+.big { margin: 0; font-stretch: 82%; font-weight: 680; font-size: 2.05rem; line-height: 1.02; letter-spacing: -.01em; }
+.big small { font-size: .82rem; font-weight: 500; letter-spacing: 0; color: var(--ink-2); font-stretch: 100%; }
+.sub { margin: 0; font-size: .9rem; color: var(--ink); }
+.foot { margin: 0; margin-top: auto; padding-top: 4px; font-size: .78rem; color: var(--ink-2); }
+.chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--rule); border-radius: 999px; padding: 2px 9px; font-size: .76rem; color: var(--ink); background: var(--paper); }
+.sub-2 { font-size: .8rem; color: var(--ink-2); }
+.warn-t { color: var(--warn); }
+.leannote { border: 1px solid var(--rule); border-left: 3px solid var(--lean); background: var(--card); border-radius: 10px; padding: 9px 12px; font-size: .84rem; line-height: 1.45; }
+.leannote p { margin: 0; }
+.warnnote { border-left-color: var(--warn); }
+#target-ctls { display: grid; gap: 14px; }
+.seg-4 span { font-size: .8rem; padding: 6px 2px; }
+table.mini { border-collapse: collapse; width: 100%; font-size: .88rem; font-variant-numeric: tabular-nums; }
+table.mini th, table.mini td { padding: 3px 0; text-align: left; vertical-align: baseline; }
+table.mini td { padding-left: 8px; }
+table.mini thead th { font-family: var(--font-mono); font-weight: 500; font-size: .64rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); padding-bottom: 4px; padding-left: 8px; }
+table.mini thead th:first-child { padding-left: 0; }
+table.mini tbody th { font-family: var(--font-mono); font-weight: 500; font-size: .66rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); width: 4.6em; }
+table.mini tbody tr + tr th, table.mini tbody tr + tr td { border-top: 1px solid var(--rule); }
+.tag { display: inline-block; font-size: .72rem; line-height: 1.35; border: 1px solid var(--rule); border-radius: 4px; padding: 0 5px; color: var(--ink-2); white-space: nowrap; }
+
+/* viikkokäyrä */
+.panel { background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 16px; display: grid; gap: 10px; min-width: 0; }
+.panel-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 6px 18px; }
+.panel-head h2 { margin: 0; }
+.panel-head p { margin: 0; font-size: .86rem; color: var(--ink-2); max-width: 40rem; }
+.legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: .78rem; color: var(--ink-2); }
+.legend li { display: flex; align-items: center; gap: 6px; }
+.key-bar { width: 10px; height: 10px; border-radius: 2px; }
+.key-line { width: 18px; height: 2px; background: var(--ink); border-radius: 1px; }
+.key-dash { width: 18px; height: 0; border-top: 2px dashed var(--ink-2); }
+.chart { width: 100%; min-width: 0; touch-action: pan-y; }
+.chart svg { display: block; width: 100%; overflow: visible; }
+.ax { fill: var(--ink-3); font-family: var(--font-mono); font-size: 10.5px; font-variant-numeric: tabular-nums; }
+.ax-t { fill: var(--ink-2); font-family: var(--font-mono); font-size: 10.5px; }
+.gridl { stroke: var(--grid); stroke-width: 1; shape-rendering: crispEdges; }
+.base { stroke: var(--ink-3); stroke-width: 1; shape-rendering: crispEdges; }
+.wline { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.warea { fill: var(--ink); opacity: .07; }
+.tline { stroke: var(--ink-2); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.tlab { fill: var(--ink-2); font-family: var(--font-mono); font-size: 10.5px; }
+.zone { fill: var(--c2); opacity: .1; }
+.zlab { fill: var(--ink-2); font-family: var(--font-mono); font-size: 10.5px; }
+.b-fat { fill: var(--c2); }
+.b-lean { fill: var(--lean); }
+.band-0 { fill: var(--ink); opacity: .07; }
+.band-1 { fill: var(--ink); opacity: .14; }
+.band-t { fill: var(--ink-2); font-family: var(--font-mono); font-size: 10px; }
+.cross { stroke: var(--ink-2); stroke-width: 1; fill: none; }
+.cross.preview { stroke-dasharray: 3 3; }
+.chart svg { cursor: crosshair; }
+/* energiapaneeli */
+.e-tdee { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.e-noat { fill: none; stroke: var(--ink-2); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.e-int { fill: none; stroke: var(--c1); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.e-def { fill: var(--c1); opacity: .14; stroke: none; }
+.e-at-sw { stroke: var(--ink-3); stroke-width: .8; }
+.hatch-l { stroke: var(--ink-2); stroke-width: 1.3; opacity: .55; }
+.elab { fill: var(--ink-2); font-family: var(--font-mono); font-size: 10.5px; paint-order: stroke; stroke: var(--card); stroke-width: 3px; stroke-linejoin: round; }
+.dot-int { fill: var(--c1); }
+.dot { fill: var(--ink); stroke: var(--card); stroke-width: 2; }
+/* aikajana kehokuvan alla */
+.scrub { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; border-top: 1px solid var(--rule); padding-top: 8px; margin-top: 2px; }
+.scrub output { font-family: var(--font-mono); font-size: .78rem; color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; min-width: 4.6em; text-align: right; }
+.play {
+  display: inline-grid; place-items: center; width: 32px; height: 32px; padding: 0; border-radius: 50%;
+  border: 1px solid var(--accent); color: var(--accent); background: var(--card); cursor: pointer;
+}
+.play:hover { background: var(--accent-wash); }
+.play:disabled { opacity: .4; cursor: default; background: var(--card); }
+.play svg { width: 12px; height: 12px; fill: currentColor; }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.readout { margin: 0; font-size: .88rem; color: var(--ink); font-variant-numeric: tabular-nums; min-height: 2.6em; }
+.readout b { font-weight: 650; }
+details.tbl summary { cursor: pointer; font-size: .86rem; font-weight: 600; color: var(--accent); }
+details.tbl summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.tablewrap { overflow-x: auto; margin-top: 8px; max-height: 420px; overflow-y: auto; border: 1px solid var(--rule); border-radius: 8px; }
+table.data { border-collapse: collapse; width: 100%; font-size: .82rem; font-variant-numeric: tabular-nums; }
+table.data th, table.data td { padding: 6px 10px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--rule); }
+table.data th { position: sticky; top: 0; background: var(--card); font-family: var(--font-mono); font-weight: 500; font-size: .68rem; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); }
+table.data td:first-child, table.data th:first-child { text-align: left; }
+table.data td:last-child, table.data th:last-child { text-align: left; }
+table.data tr.sel td { background: var(--accent-wash); }
+
+/* oma syöminen */
+.diet-group { display: grid; gap: 8px; padding-top: 6px; }
+.diet-group > h2 { margin: 0; padding-bottom: 6px; border-bottom: 1px solid var(--rule); }
+.diet-group > .ctl-note { margin: 0; }
+.splitbar { position: relative; height: 26px; margin-top: 20px; margin-bottom: 22px; }
+.splitbar .track { position: absolute; inset: 0; border-radius: 6px; background: var(--paper); border: 1px solid var(--rule); }
+.splitbar .seg-fat, .splitbar .seg-lean { position: absolute; top: 1px; bottom: 1px; }
+.splitbar .seg-fat { background: var(--fat); border-radius: 5px 0 0 5px; }
+.splitbar .seg-lean { background: var(--lean); border-radius: 0 5px 5px 0; }
+.splitbar .mk { position: absolute; top: -6px; bottom: -6px; width: 0; border-left: 2px solid var(--ink); }
+.splitbar .mk span { position: absolute; left: -1px; transform: translateX(-50%); font-family: var(--font-mono); font-size: .68rem; color: var(--ink-2); white-space: nowrap; }
+.splitbar .mk.cap span { top: -18px; }
+.splitbar .mk.rec { border-left: 2px dotted var(--ink-2); }
+.splitbar .mk.rec span { bottom: -20px; }
+.diet-text { margin: 0; font-size: .86rem; line-height: 1.5; color: var(--ink); }
+.diet-text b { font-weight: 650; }
+
+.fine { font-size: .8rem; color: var(--ink-2); margin: 0; max-width: 60rem; line-height: 1.5; }
+
+/* ---------- essee ---------- */
+.essay { max-width: 41rem; margin: 56px auto 0; font-family: var(--font-body); font-size: 1.1rem; line-height: 1.66; color: var(--ink); }
+.essay > * + * { margin-top: 1em; }
+.essay p { margin-bottom: 0; text-wrap: pretty; hyphens: auto; }
+.essay h2 {
+  font-family: var(--font-display); font-stretch: 78%; font-weight: 720; font-size: clamp(1.5rem, 3vw, 1.9rem);
+  line-height: 1.1; letter-spacing: -.005em; margin: 2.1em 0 0; text-wrap: balance;
+}
+.essay h2 + p { margin-top: .6em; }
+.essay .lede { font-size: 1.2rem; line-height: 1.55; }
+.essay ul { padding-left: 1.2em; margin-bottom: 0; }
+.essay li + li { margin-top: .35em; }
+.cite { font-family: var(--font-mono); font-size: .74em; text-decoration: none; padding-inline: 1px; white-space: nowrap; }
+.cite:hover { text-decoration: underline; }
+.formula {
+  font-family: var(--font-mono); font-size: .9rem; background: var(--card); border: 1px solid var(--rule);
+  border-radius: 10px; padding: 12px 14px; line-height: 1.6; overflow-x: auto;
+}
+.formula b { font-weight: 500; color: var(--accent); }
+.essay figure { margin: 1.6em 0 0; }
+.essay figcaption { font-family: var(--font-display); font-size: .85rem; line-height: 1.45; color: var(--ink-2); margin-top: 8px; }
+.essay figcaption b { color: var(--ink); font-weight: 650; }
+.fig1 { background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 12px 12px 6px; font-family: var(--font-display); }
+.fig1 .legend { margin-bottom: 6px; }
+.o1 { stroke: var(--o1); } .o2 { stroke: var(--o2); } .o3 { stroke: var(--o3); }
+.ok1 { background: var(--o1); } .ok2 { background: var(--o2); } .ok3 { background: var(--o3); }
+.fig1 .pl { fill: none; stroke-linejoin: round; stroke-linecap: round; }
+.fig1 .tip { font-family: var(--font-mono); font-size: .76rem; color: var(--ink-2); min-height: 1.4em; margin: 2px 4px 4px; font-variant-numeric: tabular-nums; }
+.tablebox { overflow-x: auto; }
+.essay table.data { font-family: var(--font-display); font-size: .88rem; }
+.essay table.data td.l { text-align: left; }
+.essay table.data tfoot td { font-weight: 650; border-bottom: 0; }
+.cta { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-display); font-weight: 600; font-size: .92rem; border: 1px solid var(--accent); color: var(--accent); background: transparent; border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+.cta:hover { background: var(--accent-wash); }
+.cta:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.box { background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 16px 18px; font-family: var(--font-display); font-size: .92rem; line-height: 1.5; }
+.box h3 { margin: 0 0 8px; font-stretch: 85%; font-weight: 700; font-size: 1.05rem; }
+.box dl { margin: 0; display: grid; gap: 10px; }
+.box dt { font-weight: 600; }
+.box dd { margin: 2px 0 0; font-family: var(--font-mono); font-size: .8rem; color: var(--ink-2); line-height: 1.55; }
+.refs { font-family: var(--font-display); font-size: .86rem; line-height: 1.5; padding-left: 1.8em; }
+.refs li { padding-left: .2em; }
+.refs li:target { background: var(--accent-wash); border-radius: 6px; }
+.refs .src { color: var(--ink-2); }
+.refs a { word-break: break-word; }
+.closing { font-family: var(--font-display); font-size: .82rem; color: var(--ink-2); border-top: 1px solid var(--rule); padding-top: 14px; }
+
+/* ---------- kapeat näytöt ---------- */
+@media (max-width: 1020px) {
+  .report { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 860px) {
+  .controls { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 700px) {
+  .sim-top { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .stage {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+    grid-template-columns: minmax(0, 46%) minmax(0, 1fr); grid-template-rows: auto auto 1fr auto;
+    column-gap: 10px; padding: 10px;
+  }
+  .stage .fig-svg { grid-column: 1; grid-row: 1 / span 3; height: clamp(180px, 30vh, 232px); }
+  .stage .st-read { grid-column: 2; grid-row: 1; align-self: end; }
+  .stage .fig-legend { grid-column: 2; grid-row: 2; flex-direction: column; gap: 2px; font-size: .76rem; }
+  .stage .st-mini { grid-column: 2; grid-row: 3; display: grid; gap: 4px; align-self: end; }
+  .stage .scrub { grid-column: 1 / -1; grid-row: 4; padding-top: 6px; }
+  .stage { box-shadow: 0 0 0 10px var(--paper), 0 14px 16px -12px rgb(0 0 0 / .35); }
+  .st-big { font-size: 1.7rem; }
+  .masthead { padding-block: 20px 12px; }
+  .dek { font-size: .98rem; }
+}
+@media (max-width: 520px) {
+  .report { grid-template-columns: minmax(0, 1fr); }
+  .essay { font-size: 1.04rem; }
+  .big { font-size: 1.85rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { scroll-behavior: auto !important; }
+}
+</style>
+<style>html { background: var(--paper); } body { margin: 0; }</style>
+</head>
+<body>
+<header class="masthead wrap">
+  <p class="eyebrow">Tiede-essee ja simulaattori</p>
+  <h1>Rasvanpolton <span>katto</span></h1>
+  <p class="dek">Rasvavarastosta voi purkaa energiaa vain tietyllä nopeudella, ja nopeus pienenee varaston mukana. Siksi viimeiset kilot vievät pisimpään. Säädä simulaattoriin omat mittasi ja katso, millainen pudotuskäyrä niistä syntyy.</p>
+</header>
+
+<main>
+<section class="sim wrap" id="simulaattori" aria-label="Simulaattori">
+  <div class="sim-bar">
+    <span class="eyebrow">Simulaattori</span>
+    <span class="sim-state" id="sim-state"><b>Esimerkkiarvot</b> · säädä omiksesi</span>
+    <button type="button" class="ghost-btn" id="reset">Palauta esimerkki</button>
+  </div>
+
+  <div class="sim-top">
+    <div class="stage" id="stage">
+      <div class="st-read">
+        <div class="st-top"><span class="eyebrow" id="st-label">Nyt</span><button type="button" class="st-now" id="st-now" hidden aria-label="Palaa nykyhetkeen">↺ Nyt</button></div>
+        <span class="st-big"><span id="st-w">105,0</span><small> kg</small></span>
+        <span class="st-sub" id="st-sub">rasvaa 33,1 kg · 31,5 %</span>
+      </div>
+      <svg class="fig-svg" id="fig" viewBox="-50 -224 94 232" preserveAspectRatio="xMidYMax meet" role="img" aria-label="Kehon sivuprofiili: rasvaton massa ja rasva sekä tavoitteen ääriviiva">
+        <g id="fig-grid"></g>
+        <path id="p-fat" class="fat" d=""/>
+        <path id="p-lean" class="lean" d=""/>
+        <path id="p-arm" class="arm-sep" d=""/>
+        <path id="p-armlean" class="lean" d=""/>
+        <path id="p-ghost" class="ghost" d=""/>
+        <g id="fig-h"></g>
+        <rect id="scan" class="scan" x="-50" y="-230" width="94" height="0.7" opacity="0"/>
+      </svg>
+      <ul class="fig-legend">
+        <li><i class="sw sw-lean"></i>Rasvaton massa</li>
+        <li><i class="sw sw-fat"></i>Rasva</li>
+        <li><i class="sw sw-ghost"></i>Tavoite</li>
+      </ul>
+      <dl class="st-mini">
+        <div><dt>Katto</dt><dd id="sm-cap">–</dd></div>
+        <div><dt>Vaje</dt><dd id="sm-def">–</dd></div>
+        <div><dt>Matka</dt><dd id="sm-time">–</dd></div>
+      </dl>
+      <div class="scrub">
+        <button type="button" class="play" id="play" aria-label="Toista koko matka"><svg viewBox="0 0 12 12" aria-hidden="true"><path id="play-icon" d="M2 1l9 5-9 5z"/></svg><span class="vh" id="play-t">Toista</span></button>
+        <label for="week" class="vh">Viikko</label>
+        <input type="range" id="week" min="0" max="1" step="1" value="0">
+        <output id="week-out" for="week"></output>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="group">
+        <h2 class="eyebrow">Keho nyt</h2>
+        <fieldset class="seg" id="sex-seg">
+          <legend>Sukupuoli</legend>
+          <label><input type="radio" name="sex" value="m" id="sex-m"><span>Mies</span></label>
+          <label><input type="radio" name="sex" value="f" id="sex-f"><span>Nainen</span></label>
+        </fieldset>
+        <div class="ctl">
+          <div class="ctl-head"><label for="age">Ikä</label><output id="age-out" for="age"></output></div>
+          <div class="ctl-row"><button type="button" class="step" data-for="age" data-dir="-1" aria-label="Pienennä ikää">−</button><input type="range" id="age"><button type="button" class="step" data-for="age" data-dir="1" aria-label="Suurenna ikää">+</button></div>
+        </div>
+        <div class="ctl">
+          <div class="ctl-head"><label for="height">Pituus</label><output id="height-out" for="height"></output></div>
+          <div class="ctl-row"><button type="button" class="step" data-for="height" data-dir="-1" aria-label="Pienennä pituutta">−</button><input type="range" id="height"><button type="button" class="step" data-for="height" data-dir="1" aria-label="Suurenna pituutta">+</button></div>
+        </div>
+        <div class="ctl">
+          <div class="ctl-head"><label for="weight">Paino</label><output id="weight-out" for="weight"></output></div>
+          <div class="ctl-row"><button type="button" class="step" data-for="weight" data-dir="-1" aria-label="Pienennä painoa">−</button><input type="range" id="weight"><button type="button" class="step" data-for="weight" data-dir="1" aria-label="Suurenna painoa">+</button></div>
+          <div class="ctl-note" id="weight-note"></div>
+        </div>
+        <div class="ctl">
+          <div class="ctl-head"><label for="bf">Rasvaprosentti</label><output id="bf-out" for="bf"></output></div>
+          <div class="ctl-row"><button type="button" class="step" data-for="bf" data-dir="-1" aria-label="Pienennä rasvaprosenttia">−</button><input type="range" id="bf"><button type="button" class="step" data-for="bf" data-dir="1" aria-label="Suurenna rasvaprosenttia">+</button></div>
+          <div class="ctl-note" id="bf-note"></div>
+        </div>
+        <div class="ctl">
+          <div class="ctl-head"><label for="pal">Aktiivisuus</label><output id="pal-out" for="pal"></output></div>
+          <div class="ctl-row"><button type="button" class="step" data-for="pal" data-dir="-1" aria-label="Vähemmän aktiivisuutta">−</button><input type="range" id="pal"><button type="button" class="step" data-for="pal" data-dir="1" aria-label="Enemmän aktiivisuutta">+</button></div>
+          <div class="ctl-note" id="pal-note"></div>
+        </div>
+        <div class="ctl">
+          <div class="ctl-head"><label for="corr">Ylläpitokulutus</label><output id="corr-out" for="corr"></output></div>
+          <div class="ctl-row"><button type="button" class="step" data-for="corr" data-dir="-1" aria-label="Pienennä kulutusarviota">−</button><input type="range" id="corr"><button type="button" class="step" data-for="corr" data-dir="1" aria-label="Suurenna kulutusarviota">+</button></div>
+          <div class="ctl-note" id="corr-note"></div>
+        </div>
+        <div class="ctl">
+          <div class="ctl-head"><label for="adapt">Säästöliekki</label><output id="adapt-out" for="adapt"></output></div>
+          <div class="ctl-row"><button type="button" class="step" data-for="adapt" data-dir="-1" aria-label="Heikennä säästöliekkiä">−</button><input type="range" id="adapt"><button type="button" class="step" data-for="adapt" data-dir="1" aria-label="Voimista säästöliekkiä">+</button></div>
+          <div class="ctl-note" id="adapt-note"></div>
+        </div>
+        <div class="ctl">
+          <div class="ctl-head"><span class="lbl" id="train-lbl">Voimaharjoittelu ja runsas proteiini</span></div>
+          <fieldset class="seg" aria-labelledby="train-lbl">
+            <legend>Voimaharjoittelu ja runsas proteiini</legend>
+            <label><input type="radio" name="train" value="y" id="train-y"><span>Kyllä</span></label>
+            <label><input type="radio" name="train" value="n" id="train-n"><span>Ei</span></label>
+          </fieldset>
+          <div class="ctl-note" id="train-note"></div>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2 class="eyebrow">Tavoite</h2>
+        <div id="target-ctls">
+          <div class="ctl">
+            <div class="ctl-head"><label for="target">Tavoitepaino</label><output id="target-out" for="target"></output></div>
+            <div class="ctl-row"><button type="button" class="step" data-for="target" data-dir="-1" aria-label="Pienennä tavoitepainoa">−</button><input type="range" id="target"><button type="button" class="step" data-for="target" data-dir="1" aria-label="Suurenna tavoitepainoa">+</button></div>
+            <div class="ctl-note" id="target-note"></div>
+          </div>
+          <div class="ctl">
+            <div class="ctl-head"><label for="floor">Rasvaa perillä vähintään</label><output id="floor-out" for="floor"></output></div>
+            <div class="ctl-row"><button type="button" class="step" data-for="floor" data-dir="-1" aria-label="Laske rasvan alarajaa">−</button><input type="range" id="floor"><button type="button" class="step" data-for="floor" data-dir="1" aria-label="Nosta rasvan alarajaa">+</button></div>
+            <div class="ctl-note" id="floor-note"></div>
+          </div>
+        </div>
+        <div class="leannote" id="leannote" hidden><p id="lean-text"></p></div>
+        <div class="leannote warnnote" id="bfwarn" hidden><p id="bfwarn-text"></p></div>
+        <div class="ctl">
+          <div class="ctl-head"><span class="lbl" id="pace-lbl">Tahti</span></div>
+          <fieldset class="seg seg-4" aria-labelledby="pace-lbl">
+            <legend>Tahti</legend>
+            <label><input type="radio" name="pace" value="varovainen" id="pace-v"><span>Varovainen<small>60 %</small></span></label>
+            <label><input type="radio" name="pace" value="suositeltu" id="pace-s"><span>Suositeltu<small>80 %</small></span></label>
+            <label><input type="radio" name="pace" value="katto" id="pace-k"><span>Katto<small>100 %</small></span></label>
+            <label><input type="radio" name="pace" value="yli" id="pace-y"><span>Yli katon<small>125 %</small></span></label>
+          </fieldset>
+          <div class="ctl-note" id="pace-note"></div>
+        </div>
+        <div class="stopnote" id="stopnote" hidden>
+          <p id="stop-text"></p>
+          <p id="stop-help">Jos syöminen, paino tai keho kuormittaa mieltä, tukea saa esimerkiksi Syömishäiriöliitto – SYLI ry:ltä: <a href="https://syomishairioliitto.fi" target="_blank" rel="noopener">syomishairioliitto.fi</a> (tukipuhelin ja chat).</p>
+        </div>
+        <div class="diet-group">
+          <h2 class="eyebrow" id="diet-h">Oma syöminen</h2>
+          <p class="ctl-note">Paljonko vajeestasi mahtuu rasvavaraston kattoon? Voit kokeilla myös paastoa (0 kcal).</p>
+          <div class="ctl">
+            <div class="ctl-head"><label for="intake">Energiansaanti</label><output id="intake-out" for="intake"></output></div>
+            <div class="ctl-row"><button type="button" class="step" data-for="intake" data-dir="-1" aria-label="Pienennä energiansaantia">−</button><input type="range" id="intake"><button type="button" class="step" data-for="intake" data-dir="1" aria-label="Suurenna energiansaantia">+</button></div>
+            <div class="ctl-note" id="intake-note"></div>
+          </div>
+          <div class="ctl">
+            <div class="ctl-head"><label for="days">Jakson pituus</label><output id="days-out" for="days"></output></div>
+            <div class="ctl-row"><button type="button" class="step" data-for="days" data-dir="-1" aria-label="Lyhennä jaksoa">−</button><input type="range" id="days"><button type="button" class="step" data-for="days" data-dir="1" aria-label="Pidennä jaksoa">+</button></div>
+          </div>
+          <div class="splitbar" id="splitbar" aria-hidden="true">
+            <div class="track"></div>
+            <div class="seg-fat" id="sb-fat"></div>
+            <div class="seg-lean" id="sb-lean"></div>
+            <div class="mk cap" id="sb-cap"><span>katto</span></div>
+            <div class="mk rec" id="sb-rec"><span>suositus</span></div>
+          </div>
+          <p class="diet-text" id="diet-text"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="report" id="report">
+    <article class="card">
+      <h3 class="eyebrow">Rasvanpolton katto nyt</h3>
+      <p class="big"><span id="cap-v">–</span> <small>kcal/vrk</small></p>
+      <p class="sub" id="cap-sub"></p>
+      <p class="foot" id="cap-foot"></p>
+    </article>
+    <article class="card">
+      <h3 class="eyebrow">Seuraava viikko</h3>
+      <p class="big"><span id="next-v">–</span> <small id="next-u">kcal/vrk vaje</small></p>
+      <p class="sub" id="next-sub"></p>
+      <p class="foot"><span class="chip" id="next-chip"><span id="next-chip-t"></span></span></p>
+    </article>
+    <article class="card">
+      <h3 class="eyebrow">Matka tavoitteeseen</h3>
+      <p class="big"><span id="time-v">–</span> <small id="time-u">viikkoa</small></p>
+      <p class="sub" id="time-sub"></p>
+      <p class="foot" id="time-foot"></p>
+    </article>
+    <article class="card">
+      <h3 class="eyebrow">Kehonkoostumus</h3>
+      <table class="mini">
+        <thead><tr><th></th><th>Nyt</th><th>Tavoite</th></tr></thead>
+        <tbody>
+          <tr><th>Paino</th><td id="bc-w0"></td><td id="bc-w1"></td></tr>
+          <tr><th>BMI</th><td id="bc-b0"></td><td id="bc-b1"></td></tr>
+          <tr><th>Luokka</th><td id="bc-c0"></td><td id="bc-c1"></td></tr>
+          <tr><th>Rasva</th><td id="bc-f0"></td><td id="bc-f1"></td></tr>
+          <tr><th>Rasvaton</th><td id="bc-l0"></td><td id="bc-l1"></td></tr>
+        </tbody>
+      </table>
+      <p class="foot" id="bc-foot"></p>
+    </article>
+  </div>
+
+  <section class="panel" aria-labelledby="curve-h">
+    <div class="panel-head">
+      <div>
+        <h2 class="eyebrow" id="curve-h">Viikkokäyrä</h2>
+        <p>Paino viikko viikolta ja kunkin viikon pudotus jaettuna rasvaan ja rasvattomaan massaan. Alin vyö kertoo, mikä raja määrää vajeen. Vie osoitin käyrälle nähdäksesi viikon luvut. Klikkaamalla valitset viikon kehokuvaan, ja kehokuvan aikajanalla voit toistaa koko matkan.</p>
+      </div>
+      <ul class="legend">
+        <li><i class="key-line"></i>Paino</li>
+        <li><i class="key-dash"></i>Tavoite</li>
+        <li><i class="key-bar" style="background:var(--c2)"></i>Rasvaa / vk</li>
+        <li><i class="key-bar" style="background:var(--lean)"></i>Rasvatonta massaa / vk</li>
+      </ul>
+    </div>
+    <div class="chart" id="chart"></div>
+    <p class="readout" id="readout"></p>
+    <details class="tbl">
+      <summary>Näytä viikkotaulukko</summary>
+      <div class="tablewrap">
+        <table class="data">
+          <thead><tr><th>Viikko</th><th>Paino</th><th>Rasva</th><th>Rasva-%</th><th>Rasvaton</th><th>Katto</th><th>Kulutus</th><th>Säästöliekki</th><th>Vaje</th><th>Syöminen</th><th>Pudotus</th><th>Josta rasvaton</th><th>Rajaa</th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </details>
+  </section>
+
+
+  <p class="fine">Oletuksena malli olettaa, että voimaharjoittelu ja runsas proteiini pitävät rasvattoman massan ennallaan, kun vaje pysyy rasvavaraston katon alla ja rasvaa on yli valitun alarajan (oletuksena 3 % miehillä ja 11 % naisilla). Muuten rasvattoman massan menetys näytetään erikseen. Kulutus laskee viikoittain kehon koon, syömisen ja säästöliekin mukana. Säästöliekin voimakkuuden voi valita, ja ylläpitokulutuksen voi sovittaa omaan toteutuneeseen kulutukseen. Luvut ovat suuntaa antavia arvioita, eivät lääketieteellisiä ohjeita. Simulaattori on tarkoitettu aikuisille. Arvosi tallentuvat vain tähän selaimeen.</p>
+</section>
+
+<article class="essay" id="essee">
+  <p class="lede">Laihduttamista on helppo ajatella tuotantona. Jos pelto tuottaa vuodessa tietyn sadon, kaksinkertainen tilaus ylittää kapasiteetin, ja jostain on joustettava. Ihmiskehossa vertaus pitää paikkansa vain osittain, ja juuri ero selittää, miksi laihdutuksen tahdin pitää hidastua loppua kohden.</p>
+
+  <h2>Varasto eikä sato</h2>
+  <p>Rasva on jo tuotettua ja varastoitua energiaa. Ratkaisevaa on, kuinka nopeasti varastosta voi purkaa energiaa ja mitä keho tekee, kun tarve on purkunopeutta suurempi.</p>
+  <p>Osuva vertauskohta on huoltovarmuusvarasto. Varastoa voi purkaa vain sen kokoon suhteutetulla nopeudella. Jos tarve on suurempi, otetaan käyttöön jotain muuta, pahimmillaan siemenviljaa eli sitä, jonka varassa tuleva tuotanto on. Kehossa siemenvilja on lihas.</p>
+
+  <h2>Katto: noin 69 kilokaloria rasvakiloa kohden vuorokaudessa</h2>
+  <p>Tarkimmat varhaiset havainnot puolinälästä ovat Minnesotan nälkäkokeesta. Vuosina 1944–1945 Ancel Keys työryhmineen seurasi 36 nuorta miestä, jotka elivät 24 viikkoa niukalla ruokavaliolla. Tulokset julkaistiin vuonna 1950 kaksiosaisena teoksena <a class="cite" href="#r1">[1]</a>.</p>
+  <p>Fyysikko Seymour Alpert analysoi vuonna 2005 aliravittujen, kohtuullisesti liikkuvien koehenkilöiden aineistoja ja johti niistä rasvavaraston energiansiirron ylärajan <a class="cite" href="#r2">[2]</a>. Hänen tuloksensa mukaan rasvavarastosta voi siirtyä enintään 290&nbsp;±&nbsp;25&nbsp;kJ energiaa rasvakiloa kohden vuorokaudessa, eli noin 69&nbsp;±&nbsp;6&nbsp;kcal. Jos energiavaje on tätä suurempi, rasvaton massa alkaa vähentyä heti. Jos vaje on pienempi, rasvaton massa ei mallin mukaan kulu.</p>
+  <div class="formula">katto (kcal/vrk) ≈ <b>69,3</b> × rasvamassa (kg)</div>
+  <p>Esimerkiksi 30&nbsp;kg rasvaa riittää noin 2&nbsp;080&nbsp;kcal:n päivävajeeseen, mutta 10&nbsp;kg enää noin 690&nbsp;kcal:n vajeeseen. Katto on suhteessa varaston kokoon, ja se laskee sitä mukaa kuin rasvaa palaa.</p>
+  <p>Luku on teoreettisen mallin tulos, ja se on johdettu pienistä koeaineistoista. Raja ei ole jyrkkä seinä, ja ihmisten välillä on eroja. Malli selittää silti hyvin sen, minkä valmentajat ja tutkijat ovat nähneet käytännössä: mitä hoikempi ihminen on, sitä herkemmin laihdutus vie lihasta.</p>
+
+  <h2>Mitä yksi kilo sisältää</h2>
+  <p>Painon ja energian välinen muunnos riippuu siitä, mitä kudosta lähtee. Kevin Hallin mallissa <a class="cite" href="#r3">[3]</a> rasvamassan energiatiheys on 39,5&nbsp;MJ/kg eli noin 9&nbsp;440&nbsp;kcal/kg ja rasvattoman massan 7,6&nbsp;MJ/kg eli noin 1&nbsp;820&nbsp;kcal/kg. Rasvaton kudos on enimmäkseen vettä, joten kilo sitä vapauttaa vain viidenneksen siitä energiasta, jonka kilo rasvaa vapauttaa.</p>
+  <p>Tuttu nyrkkisääntö 3&nbsp;500&nbsp;kcal paunaa kohden, noin 7&nbsp;700&nbsp;kcal kilolle, on peräisin vuodelta 1958 <a class="cite" href="#r4">[4]</a>. Hallin analyysin mukaan se vastaa likimain niiden painonpudotusta, joilla on rasvaa yli 30&nbsp;kg. Hoikemmilla suurempi osa painosta lähtee rasvattomasta massasta, joten sama vaje pudottaa painoa enemmän mutta rasvaa vähemmän.</p>
+  <p>Dieetin ensimmäisten päivien suuret pudotukset selittyvät glykogeenilla. Lihas sitoo jokaista glykogeenigrammaa kohden vähintään noin 3&nbsp;g vettä <a class="cite" href="#r5">[5]</a>. Kun hiilihydraattien saanti ja glykogeenivarastot pienenevät, vaaka voi näyttää ensimmäisellä viikolla parin kilon pudotusta, josta suuri osa on vettä. Se ei kerro rasvanpoltosta, eikä tahti jatku.</p>
+  <p>Simulaattori laskee rasvan muutoksen puhtaana rasvana (9&nbsp;440&nbsp;kcal/kg). Rasvakudoksena, johon kuuluu myös vettä, sama energiamäärä vastaa noin 20–25&nbsp;% suurempaa painonmuutosta.</p>
+
+  <h2>Miksi tahti ohenee</h2>
+  <p>Jos vaje pidetään koko ajan samana osuutena katosta, rasvamassa pienenee joka viikko saman prosenttiosuuden. Katon tahdilla osuus on 69,3&nbsp;×&nbsp;7&nbsp;/&nbsp;9&nbsp;440 eli noin 5,1&nbsp;% viikossa, ja 80&nbsp;%:n tahdilla noin 4,1&nbsp;%. Rasvamassa puolittuu silloin noin 13 tai 17 viikossa. Jokainen kilo vie edellistä kauemmin, koska jäljellä oleva varasto on pienempi.</p>
+  <p>Käytännön suositukset päätyvät samaan suuntaan. Helms, Aragon ja Fitschen suosittelevat kilpailuun valmistautuville luonnollisille kehonrakentajille 0,5–1&nbsp;%:n viikkopudotusta kehonpainosta <a class="cite" href="#r6">[6]</a>. Garthe työryhmineen vertasi huippu-urheilijoilla 0,7&nbsp;%:n ja 1,4&nbsp;%:n tavoitetahtia. Hitaammin laihduttaneet lisäsivät rasvatonta massaa ja voimaa, ja heidän rasvamassansa pieneni suhteellisesti enemmän (31&nbsp;% ja 21&nbsp;%) <a class="cite" href="#r7">[7]</a>.</p>
+  <p>Simulaattori yhdistää nämä rajat. Jokaisen viikon vaje on pienin seuraavista:</p>
+  <ul>
+    <li>valittu osuus rasvavaraston katosta (60, 80, 100 tai 125&nbsp;%)</li>
+    <li>1&nbsp;% kehonpainosta viikossa (varovaisella tahdilla 0,7&nbsp;% ja yli katon -tahdilla 1,5&nbsp;%)</li>
+    <li>kulutus vähennettynä energiansaannin alarajalla (1&nbsp;500&nbsp;kcal miehillä ja 1&nbsp;200&nbsp;kcal naisilla).</li>
+  </ul>
+  <p>Alussa vajetta rajaa yleensä prosenttisääntö, lopussa rasvavaraston katto. Yli katon -tahdilla katon ylittävä osa vajeesta katetaan mallissa rasvattomasta massasta, kuten Alpertin mallissa.</p>
+
+  <h2>Esimerkki: kamppailija 105 kilosta 80 kiloon</h2>
+  <p>Kuvitellaan 30-vuotias kamppailija, jonka pituus on 185&nbsp;cm ja paino 105&nbsp;kg. Rasvaa on 31,5&nbsp;% eli 33,1&nbsp;kg ja rasvatonta massaa 71,9&nbsp;kg. Rasvattoman massan indeksi (FFMI) on 21, joten lihasta on keskimääräistä enemmän. Painoindeksi 30,7 luokitellaan silti lihavuudeksi <a class="cite" href="#r8">[8]</a>, koska painoindeksi ei erota lihasta rasvasta. Treenejä on 6–7 viikossa, joten aktiivisuuskerroin on 1,725 ja kulutus noin 3&nbsp;360&nbsp;kcal vuorokaudessa <a class="cite" href="#r9">[9]</a>.</p>
+  <p>Jos rasvaton massa säilyy, 80&nbsp;kg:n painossa rasvaa on 8,1&nbsp;kg eli 10,1&nbsp;%. Se on kamppailijalle tavallinen kisakunto, ja painoindeksi on 23,4.</p>
+  <div class="tablebox">
+    <table class="data">
+      <caption class="eyebrow" style="text-align:left;padding:0 0 6px">Taulukko 1. Esimerkin vaiheet suositellulla tahdilla</caption>
+      <thead><tr><th>Väli</th><th>Kesto</th><th>Keskitahti</th><th>Vajetta rajaa</th></tr></thead>
+      <tbody>
+        <tr><td class="l">105 → 100 kg</td><td>4,9 vk</td><td>1,03 kg/vk</td><td class="l">1 % painosta</td></tr>
+        <tr><td class="l">100 → 95 kg</td><td>5,1 vk</td><td>0,98 kg/vk</td><td class="l">1 % painosta</td></tr>
+        <tr><td class="l">95 → 90 kg</td><td>5,8 vk</td><td>0,86 kg/vk</td><td class="l">rasvavaraston katto</td></tr>
+        <tr><td class="l">90 → 85 kg</td><td>7,7 vk</td><td>0,65 kg/vk</td><td class="l">rasvavaraston katto</td></tr>
+        <tr><td class="l">85 → 83 kg</td><td>4,0 vk</td><td>0,51 kg/vk</td><td class="l">rasvavaraston katto</td></tr>
+        <tr><td class="l">83 → 80 kg</td><td>7,5 vk</td><td>0,40 kg/vk</td><td class="l">rasvavaraston katto</td></tr>
+      </tbody>
+      <tfoot><tr><td class="l">Yhteensä</td><td>35,0 vk</td><td></td><td></td></tr></tfoot>
+    </table>
+  </div>
+  <p>Kolmen viimeisen kilon matka 83 kilosta 80 kiloon vie suositellulla tahdilla noin 7,5 viikkoa. Teoreettisen katon tahdilla siihen kuluu noin 6 viikkoa, ja keskitahti on silloin 0,5&nbsp;kg viikossa. Varovaisella tahdilla aikaa kuluu noin 10 viikkoa. Kuva 1 näyttää kaikki kolme käyrää.</p>
+  <figure>
+    <div class="fig1">
+      <ul class="legend">
+        <li><i class="key-line ok1"></i>Varovainen (60 %)</li>
+        <li><i class="key-line ok2"></i>Suositeltu (80 %)</li>
+        <li><i class="key-line ok3"></i>Katto (100 %)</li>
+      </ul>
+      <div class="chart" id="fig1-chart"></div>
+      <p class="tip" id="fig1-tip">Vie osoitin kuvaajalle nähdäksesi painot viikoittain.</p>
+    </div>
+    <figcaption><b>Kuva 1.</b> Esimerkin painokäyrät kolmella tahdilla. Varjostettu vyöhyke on viimeinen 3 kg (83–80 kg), ja käyrien päissä oleva luku on viikko, jolla tavoite saavutetaan. Alussa käyrät kulkevat päällekkäin, koska vajetta rajaa 1 %:n sääntö. Ero syntyy vasta, kun rasvavaraston katto alkaa rajata.</figcaption>
+  </figure>
+  <p><button type="button" class="cta" id="load-example">Avaa esimerkki simulaattorissa ↑</button></p>
+  <p>Kulutus laskee matkan aikana noin 3&nbsp;360&nbsp;kcal:sta 2&nbsp;630&nbsp;kcal:iin vuorokaudessa. Lepoaineenvaihdunnan osuus laskusta on noin 120&nbsp;kcal, liikunnan 250&nbsp;kcal, ruoan lämpövaikutuksen 120&nbsp;kcal ja säästöliekin oletusvoimakkuudella 230&nbsp;kcal. Suositellulla tahdilla syödään ensimmäisellä viikolla noin 1&nbsp;760&nbsp;kcal vuorokaudessa. Syöminen vähenee ensin noin 1&nbsp;560&nbsp;kcal:iin viikolla 11, koska kulutus laskee mutta vaje pysyy 1&nbsp;%:n säännön mukaisena. Sen jälkeen syöminen kasvaa noin 2&nbsp;160&nbsp;kcal:iin viimeisellä viikolla, koska katto pienentää vajetta nopeammin kuin kulutus laskee.</p>
+  <p>Kamppailulajeissa kisapainoon päästään usein osittain akuuteilla keinoilla juuri ennen punnitusta, esimerkiksi vähentämällä kehon nestettä <a class="cite" href="#r10">[10]</a>. Tämän esseen käyrät kuvaavat vain kudosta. Akuutti painonpudotus on oma, riskejä sisältävä käytäntönsä, jota simulaattori ei mallinna.</p>
+  <p>Kehonrakennuksen lavakunto on vielä tiukempi. Rossow työryhmineen seurasi luonnollista kehonrakentajaa, jonka rasvaprosentti laski kuudessa kuukaudessa 14,8&nbsp;%:sta 4,5&nbsp;%:iin. Samaan aikaan testosteroni laski 9,22:sta 2,27&nbsp;ng/ml:aan ja syke 53:sta 27 lyöntiin minuutissa. Testosteroni palautui kisan jälkeen lähtötasolle <a class="cite" href="#r11">[11]</a>. Simulaattorin rasvan alarajan oletus on siksi 3&nbsp;% miehillä ja 11&nbsp;% naisilla, ja rajaa voi nostaa. Jos tavoite vaatii enemmän, ero näkyy rasvattoman massan menetyksenä, ja urheilijoiden tavallisen vaihteluvälin alittavasta ennusteesta tulee varoitus.</p>
+
+  <h2>Kun tavoite on alempana kuin rasva riittää</h2>
+  <p>Painoluokkalajeissa tavoite voi olla alempana kuin pelkkä rasvanpudotus mahdollistaa. Ajatellaan 180-senttistä, 93-kiloista ottelijaa, jolla on rasvaa 15&nbsp;% eli noin 14&nbsp;kg. Rasvatonta massaa on noin 79&nbsp;kg. Vaikka rasva painettaisiin simulaattorin oletusalarajalle 3&nbsp;%:iin, pelkällä rasvanpudotuksella pääsisi vain noin 81,5 kiloon. Alle 79 kilon sarjaan tarvitaan siis joka tapauksessa rasvattoman massan menetystä: vettä, glykogeenia ja lihasta. Jos ottelija haluaa jättää rasvaa urheilijalle tavallisemmat 8&nbsp;%, menetystä tarvitaan noin 6,4&nbsp;kg.</p>
+  <p>Simulaattori sallii tällaisen tavoitteen ja näyttää rasvattoman massan menetyksen erikseen. Suositellulla tahdilla ja kovalla aktiivisuudella matka vie mallissa 8&nbsp;%:n alarajalla vajaat 20 viikkoa, ja noin 45&nbsp;% pudotuksesta on rasvatonta massaa. 3&nbsp;%:n alarajalla matka pitenee noin 42 viikkoon, koska viimeiset rasvakilot palavat hitaimmin. Malli jakaa rasvattoman massan menetyksen tasaisesti koko jaksolle. Käytännössä ottelijat tekevät osan siitä akuuttina painonpudotuksena viimeisinä päivinä ennen punnitusta, enimmäkseen vähentämällä kehon nestettä <a class="cite" href="#r10">[10]</a>. Se on oma, riskejä sisältävä käytäntönsä, jota tämä malli ei kuvaa.</p>
+
+  <h2>Katto ei yksin suojaa lihasta</h2>
+  <p>Alpertin katto kertoo, paljonko energiaa rasva voi enintään luovuttaa. Se ei takaa, että rasvaton massa säilyy pienemmälläkään vajeella. Gilbert Forbesin havainnon mukaan rasvattoman massan osuus painonmuutoksesta riippuu siitä, paljonko rasvaa on lähtötilanteessa <a class="cite" href="#r12">[12]</a>. Hallin muotoilussa <a class="cite" href="#r13">[13]</a> osuus on 10,4&nbsp;/&nbsp;(10,4&nbsp;+&nbsp;rasvamassa). Kun rasvaa on 33&nbsp;kg, noin 24&nbsp;% painonpudotuksesta on rasvatonta massaa. Kun rasvaa on 10&nbsp;kg, osuus on noin 51&nbsp;% ja 8&nbsp;kg:lla noin 57&nbsp;%. Luvut kuvaavat tilannetta ilman erityisiä vastatoimia.</p>
+  <p>Kaksi keinoa muuttaa tätä. Ensimmäinen on voimaharjoittelu, joka antaa keholle syyn pitää lihas. Toinen on runsas proteiini. Helms työryhmineen arvioi, että energiavajeessa olevat hoikat voimaharjoittelijat tarvitsevat proteiinia 2,3–3,1&nbsp;g rasvattoman massan kiloa kohden vuorokaudessa, ja tarve kasvaa vajeen ja hoikkuuden myötä <a class="cite" href="#r14">[14]</a>. Longlandin työryhmän neljän viikon kokeessa nuoret miehet söivät 40&nbsp;% alle kulutuksensa ja harjoittelivat kovaa. Ryhmä, joka sai proteiinia 2,4&nbsp;g/kg, lisäsi rasvatonta massaa 1,2&nbsp;kg ja menetti rasvaa 4,8&nbsp;kg. Vertailuryhmä (1,2&nbsp;g/kg) piti rasvattoman massansa ennallaan ja menetti rasvaa 3,5&nbsp;kg <a class="cite" href="#r15">[15]</a>.</p>
+  <p>Simulaattorissa nämä ovat oletuksena kunnossa, ja proteiinin tavoitemäärä näkyy grammoina voimaharjoittelukohdan alla. Kun valitset kohtaan Voimaharjoittelu ja runsas proteiini vaihtoehdon Ei, malli käyttää Forbesin osuutta, ja tuloksia voi verrata.</p>
+
+  <h2>Kulutus laskee, ja säästöliekki voimistuu</h2>
+  <p>Kulutus ei pysy dieetin aikana vakiona. Simulaattori laskee sen joka viikko uudelleen neljästä osasta samaan tapaan kuin Kevin Hallin työryhmän painonmuutosmalli <a class="cite" href="#r16">[16]</a>:</p>
+  <ul>
+    <li><b>Lepoaineenvaihdunta</b> lasketaan nykyisestä painosta ja rasvattomasta massasta.</li>
+    <li><b>Liikunnan kulutus</b> on suhteessa kehon painoon, koska kevyemmän kehon liikuttaminen vaatii vähemmän energiaa.</li>
+    <li><b>Ruoan lämpövaikutus</b> on noin 10&nbsp;% energiansaannista, joten se pienenee heti, kun syödään vähemmän.</li>
+    <li><b>Säästöliekki</b> eli mukautuva lämmöntuotto pienentää kulutusta enemmän kuin kehon koon muutos selittää.</li>
+  </ul>
+  <p>Kolme ensimmäistä ovat fysiikkaa ja koskevat kaikkia. Säästöliekin suuruus vaihtelee ihmisten välillä. Leibel, Rosenbaum ja Hirsch osoittivat vuonna 1995, että kun paino pidettiin 10&nbsp;% tavallista alempana, kokonaiskulutus laski enemmän kuin kehon koon muutos selitti <a class="cite" href="#r17">[17]</a>. Rosenbaum työryhmineen raportoi, että tällaiseen tilaan liittyy 20–30&nbsp;%:n lasku liikkumisen energiankulutuksessa, koska lihastyön hyötysuhde paranee. Muutokset kytkeytyvät leptiinin, kilpirauhashormonien ja sympaattisen hermoston säätelyyn <a class="cite" href="#r18">[18]</a>. Järjestelmällisessä katsauksessa säästöliekki havaittiin 27 tutkimuksessa 33:sta. Lepoaineenvaihdunnassa se oli tyypillisesti noin 50–190&nbsp;kcal vuorokaudessa ja kokonaiskulutuksessa noin 130–230&nbsp;kcal, suurimmillaan lähes 500&nbsp;kcal. Paremmin tehdyissä tutkimuksissa vaikutus oli pienempi <a class="cite" href="#r19">[19]</a>.</p>
+  <p>Voimistuuko säästöliekki rasvan vähetessä? Näyttö viittaa siihen. Dulloo ja Jacquet analysoivat Minnesotan nälkäkokeen aineiston uudelleen. Nuoret miehet laihtuivat puolessa vuodessa keskimäärin 24&nbsp;%, ja heidän lepoaineenvaihduntansa oli noin 400&nbsp;kcal vuorokaudessa pienempi kuin kehonkoostumus selitti. Mitä suuremman osan rasvavarastostaan he olivat menettäneet, sitä voimakkaampi säästöliekki oli. Rasvattoman massan menetys ei ollut yhteydessä siihen <a class="cite" href="#r20">[20]</a><a class="cite" href="#r21">[21]</a>. CALERIE-tutkimuksen normaali- ja lievästi ylipainoisilla aikuisilla säästöliekki oli suurin niillä, jotka menettivät eniten rasvakudosta. Jokaista menetettyä rasvakudoskiloa kohden lepoaineenvaihdunta laski noin 12&nbsp;kcal vuorokaudessa enemmän kuin kudosten menetys selitti <a class="cite" href="#r22">[22]</a>. Jos säästöliekki seuraa rasvavaraston suhteellista tyhjenemistä, se voimistuu hoikalla nopeammin, koska sama rasvakilo on hänelle suurempi osa varastosta.</p>
+  <p>Simulaattori mallintaa säästöliekin kahtena osana, joita Dulloo kuvaa erillisiksi säätöjärjestelmiksi <a class="cite" href="#r21">[21]</a>. Nopea osa seuraa syömisen vähentämistä. Hallin mallin mukaan se on 14&nbsp;% päivittäisen energiansaannin vähennyksestä ja kehittyy noin kahden viikon aikavakiolla <a class="cite" href="#r16">[16]</a>. Hidas osa kasvaa sitä mukaa kuin rasvavarasto tyhjenee. Se on 20&nbsp;% lähtötason lepoaineenvaihdunnasta kerrottuna sillä osuudella rasvasta, joka on jo kulunut. Kerroin on sovitettu tutkimuksiin: täydellä voimakkuudella malli tuottaa Minnesotan kaltaisessa tilanteessa (syöminen puolittuu, 70&nbsp;% rasvasta kuluu) noin 500&nbsp;kcal:n ja CALERIE:n kaltaisessa tilanteessa (syöminen vähenee 20&nbsp;%, 30&nbsp;% rasvasta kuluu) noin 150&nbsp;kcal:n säästöliekin.</p>
+  <p>Säästöliekin voimakkuuden voi valita simulaattorissa. Oletus on varovainen eli puolet tutkimusten keskitasosta, koska vaihtelu ihmisten välillä on suurta ja paremmin tehdyissä tutkimuksissa vaikutus on ollut pienempi. Esimerkin 105-kiloisella kamppailijalla säästöliekki on oletuksella ensimmäisellä viikolla noin 20&nbsp;kcal ja viimeisellä noin 230&nbsp;kcal vuorokaudessa.</p>
+  <p>Säästöliekki ei välttämättä hidasta laihtumista. Simulaattori pitää vajeen tahdin ja katon mukaisena ja vähentää syömistä sitä mukaa kuin kulutus laskee. Silloin säästöliekki näkyy pienempänä syömisenä. Laihtuminen hidastuu vasta, kun syöminen osuu energiansaannin alarajaan. Viikkokäyrän alin kuva näyttää kulutuksen, kulutuksen ilman säästöliekkiä ja syömisen.</p>
+  <p>Ennusteyhtälö kuvaa silti keskimääräistä ihmistä, ja yksilön todellinen kulutus voi poiketa siitä selvästi kumpaankin suuntaan. Paras mittari on viikon keskipaino. Jos se laskee 2–3 viikkoa suunniteltua hitaammin, todellinen kulutus on arviota pienempi. Jos se laskee ensimmäisen viikon jälkeen selvästi suunniteltua nopeammin, vaje on arvioitua suurempi ja voi ylittää katon, joten syömistä kannattaa lisätä. Ylläpitokulutus-säätimellä arvion voi sovittaa omaan toteutuneeseen kulutukseen. Jos dieetti on jo pitkällä, malli ei tiedä jo kertynyttä säästöliekkiä. Silloin ylläpitokulutus kannattaa sovittaa nykyiseen todelliseen kulutukseen.</p>
+
+  <h2>Paasto ylittää katon</h2>
+  <p>Katto on vuorokausikohtainen raja, ja paastopäivänä vaje on koko kulutuksen suuruinen. Edellä kuvatun 93-kiloisen ottelijan ylläpitokulutus on noin 3&nbsp;350&nbsp;kcal vuorokaudessa. Paastossa ruoan lämpövaikutus jää pois ja säästöliekki alkaa, joten kolmen päivän paastossa kulutus on keskimäärin noin 3&nbsp;000&nbsp;kcal. Katto on noin 970&nbsp;kcal, joten vajeesta noin 2&nbsp;000&nbsp;kcal jää katon yli. Mallin mukaan se vastaa noin 1,1&nbsp;kg rasvatonta massaa vuorokaudessa ja kolmen päivän paastossa noin 3,3&nbsp;kg.</p>
+  <p>Luku on mallin yläraja eikä suora arvio lihaksen menetyksestä. Paaston ensimmäisinä päivinä energiaa tulee myös glykogeenivarastoista, ja niiden mukana poistuu vettä <a class="cite" href="#r5">[5]</a>, joka palautuu syödessä. Samaan aikaan glukoosia tuotetaan yhä enemmän aminohapoista, kunnes ketoaineet korvaavat osan aivojen glukoosintarpeesta ja proteiinin käyttö hidastuu <a class="cite" href="#r23">[23]</a>. Kun rasvaa on paljon, katto voi olla kulutusta suurempi. Jos rasvaa on 100&nbsp;kg, katto on noin 6&nbsp;900&nbsp;kcal, joten mallin mukaan paastonkin vaje katetaan rasvasta.</p>
+  <p>Simulaattorin Oma syöminen -kohdassa energiansaannin voi laskea nollaan ja jakson pituuden valita päivinä.</p>
+
+  <h2>Rajat ja etiikka</h2>
+  <p>Simulaattorin tavoitepainon ainoa kova alaraja on painoindeksi 18,5, joka on WHO:n luokituksessa alipainon raja <a class="cite" href="#r8">[8]</a>. Rasvaprosenttiin sidottu raja olisi liian tiukka kahdessa tilanteessa. Painoluokkaan tähtäävän urheilijan tavoite voi vaatia rasvattoman massan menetystä, ja hyvin painavan ihmisen rasvaton massa pienenee laihtuessa luonnostaankin.</p>
+  <p>Rasvan alarajan oletus on 3&nbsp;% miehillä ja 11&nbsp;% naisilla, ja sitä voi nostaa. Oletus on American Council on Exercisen taulukossa välttämättömän rasvan alueella (miehet 2–5&nbsp;%, naiset 10–13&nbsp;%) <a class="cite" href="#r24">[24]</a>, koska kehonrakentajat käyvät kisakunnossa näin matalalla. Rossow'n työryhmän seuraama kehonrakentaja oli kisaan mennessä 4,5&nbsp;%:ssa <a class="cite" href="#r11">[11]</a>. Raja ei estä tavoitetta. Se määrää, kuinka suuren osan pudotuksesta on mallin mukaan pakko olla rasvatonta massaa, ja simulaattori näyttää sen erikseen.</p>
+  <p>Kun ennusteen rasvaprosentti alittaa urheilijoiden tyypillisen vaihteluvälin (miehet 6–13&nbsp;%, naiset 14–20&nbsp;%), simulaattori varoittaa terveysriskeistä. Helms työryhmineen muistuttaa, että esteettisissä lajeissa syömis- ja kehonkuvan häiriöiden riski on tavallista suurempi ja että kilpailijoilla pitäisi olla mahdollisuus mielenterveyden ammattilaisen tukeen <a class="cite" href="#r6">[6]</a>.</p>
+  <p>Suunnitelman energiansaanti ei laske alle 1&nbsp;500&nbsp;kcal:n miehillä tai 1&nbsp;200&nbsp;kcal:n naisilla. Se vastaa yhdysvaltalaisen hoitosuosituksen laihdutusruokavalion alarajaa, ja saman suosituksen mukaan alle 800&nbsp;kcal:n ruokavaliota käytetään vain lääkärin seurannassa <a class="cite" href="#r25">[25]</a>. Oma syöminen -kohdassa saannin voi laskea nollaan, jotta paaston vaikutuksen näkee. Iän alaraja on 18 vuotta.</p>
+  <p>Urheilijalle pelkkä kalorimäärä on silti karkea mittari. Olennaisempaa on energian saatavuus eli se energia, joka jää kehon muihin toimintoihin, kun harjoittelun kulutus vähennetään saannista. Kansainvälisen olympiakomitean vuoden 2023 konsensuslausuman mukaan pitkittynyt tai vaikea matala energian saatavuus heikentää sekä naisten että miesten terveyttä ja suorituskykyä. Oireyhtymää kutsutaan nimellä REDs (Relative Energy Deficiency in Sport) <a class="cite" href="#r26">[26]</a>. Kovaa harjoitteleva voi siis olla tässä tilassa, vaikka söisi selvästi yli 1&nbsp;500&nbsp;kcal vuorokaudessa.</p>
+  <p>Painoindeksin luokka näytetään WHO:n nimillä, koska se on yleistä terveystietoa ja auttaa suhteuttamaan lukuja. Luokka esitetään neutraalisti, ja sen rinnalla näkyvät rasvaprosentti ja rasvattoman massan indeksi, koska lihaksikkaan ihmisen painoindeksi on usein harhaanjohtava.</p>
+  <p>Mittausepävarmuus kannattaa pitää mielessä. Kehonkoostumusmittausten virhe on helposti useita prosenttiyksiköitä, ja eri menetelmät, kuten ihopoimumittaus, bioimpedanssi ja DEXA, antavat samalle ihmiselle eri lukuja. Jos todellinen rasvaprosentti on 10 eikä 13, katto on lähes neljänneksen arvioitua pienempi. Siksikin kattoon kannattaa jättää varaa. Mallin taustalla on lähinnä miehillä tehtyjä kokeita, joten naisten katto on epävarmempi.</p>
+  <p>Simulaattori ei korvaa lääkärin, ravitsemusterapeutin tai valmentajan arviota. Jos syöminen, paino tai keho kuormittaa mieltä, tukea saa esimerkiksi Syömishäiriöliitto – SYLI ry:ltä (<a href="https://syomishairioliitto.fi" target="_blank" rel="noopener">syomishairioliitto.fi</a>), jolla on tukipuhelin ja chat.</p>
+
+  <aside class="box" aria-labelledby="kaavat-h">
+    <h3 id="kaavat-h">Simulaattorin kaavat</h3>
+    <dl>
+      <div><dt>Kehonkoostumus</dt><dd>rasvamassa F = paino × rasva-% · rasvaton massa L = paino − F</dd></div>
+      <div><dt>Rasvavaraston katto <a class="cite" href="#r2">[2]</a></dt><dd>E<sub>max</sub> = 69,3 kcal × F vuorokaudessa (290 kJ/kg ÷ 4,184)</dd></div>
+      <div><dt>Lepoaineenvaihdunta <a class="cite" href="#r9">[9]</a></dt><dd>kahden Mifflinin yhtälön keskiarvo:<br>miehet 10 × paino + 6,25 × pituus − 5 × ikä + 5 · naiset … − 161<br>rasvaton massa 19,7 × L + 413</dd></div>
+      <div><dt>Ylläpitokulutus</dt><dd>R<sub>0</sub> × aktiivisuuskerroin (1,2 · 1,375 · 1,55 · 1,725 · 1,9)<br>R<sub>0</sub> = lepoaineenvaihdunta lähtötilanteessa × (1 + korjaus) · korjaus −30…+30 %, oletus 0 %</dd></div>
+      <div><dt>Kulutus dieetillä <a class="cite" href="#r16">[16]</a></dt><dd>R + P + 0,1 × saanti + A<sub>nopea</sub> + A<sub>hidas</sub><br>R = lepoaineenvaihdunta nykyisellä painolla ja rasvattomalla massalla × (1 + korjaus)<br>P = P<sub>0</sub> × paino / lähtöpaino · P<sub>0</sub> = R<sub>0</sub> × (0,9 × aktiivisuuskerroin − 1)</dd></div>
+      <div><dt>Säästöliekki <a class="cite" href="#r16">[16]</a><a class="cite" href="#r20">[20]</a><a class="cite" href="#r22">[22]</a></dt><dd>A<sub>nopea</sub> lähestyy arvoa v × 0,14 × (saanti − ylläpitokulutus) aikavakiolla 14 vrk<br>A<sub>hidas</sub> = −v × 0,20 × R<sub>0</sub> × (1 − F / F<sub>0</sub>)<br>voimakkuus v = 0 … 1,5 · oletus 0,5 (varovainen)</dd></div>
+      <div><dt>Viikon syöminen</dt><dd>saanti = kulutus − vaje, ratkaistaan yhtälöstä, koska ruoan lämpövaikutus ja nopea säästöliekki riippuvat saannista</dd></div>
+      <div><dt>Proteiini <a class="cite" href="#r14">[14]</a></dt><dd>2,3–3,1 g × L vuorokaudessa (ohjearvo, ei vaikuta laskentaan)</dd></div>
+      <div><dt>Rasvan alaraja</dt><dd>rasvaa vähintään r<sub>min</sub> painosta · oletus 3 % (miehet) tai 11 % (naiset), säädettävissä<br>varoitus, jos ennuste alittaa 6 % (miehet) tai 14 % (naiset)</dd></div>
+      <div><dt>Pakollinen rasvaton osuus</dt><dd>q = max(0, L − (1 − r<sub>min</sub>) × W<sub>tav</sub>) / (W − W<sub>tav</sub>)<br>ilman voimaharjoittelua q ≥ 10,4 / (10,4 + F) <a class="cite" href="#r13">[13]</a></dd></div>
+      <div><dt>Viikon pudotus</dt><dd>min( 7 × min(s, 1) × E<sub>max</sub> / ((1 − q) × 9 440) , r × paino ,<br>7 × (kulutus alarajan saannilla − alaraja) / ((1 − q) × 9 440 + q × 1 816) )<br>josta rasvaa (1 − q) ja rasvatonta q · s = 0,6 / 0,8 / 1,0 / 1,25 · r = 0,7 % / 1 % / 1 % / 1,5 %</dd></div>
+      <div><dt>Katon ylitys <a class="cite" href="#r2">[2]</a></dt><dd>kun s &gt; 1: lisäksi rasvatonta enintään 7 × (s − 1) × E<sub>max</sub> / 1 816 kg viikossa</dd></div>
+      <div><dt>Energiatiheydet <a class="cite" href="#r3">[3]</a></dt><dd>rasva 9 440 kcal/kg · rasvaton massa 1 816 kcal/kg</dd></div>
+      <div><dt>Oma syöminen</dt><dd>kulutus = ylläpitokulutus − 0,1 × (ylläpitokulutus − saanti) + nopea säästöliekki jakson keskiarvona<br>rasvaa min(vaje, E<sub>max</sub>) / 9 440 ja rasvatonta max(0, vaje − E<sub>max</sub>) / 1 816 kg vuorokaudessa, kerrottuna jakson päivillä</dd></div>
+      <div><dt>Tavoitepainon alaraja</dt><dd>18,5 × pituus (m)²</dd></div>
+    </dl>
+  </aside>
+
+  <h2 id="lahteet">Lähteet</h2>
+  <ol class="refs">
+    <li id="r1">Keys A, Brožek J, Henschel A, Mickelsen O, Taylor HL. <i>The Biology of Human Starvation</i>. Minneapolis: University of Minnesota Press; 1950. <span class="src">2 osaa.</span></li>
+    <li id="r2">Alpert SS. A limit on the energy transfer rate from the human fat store in hypophagia. <i>J Theor Biol</i>. 2005;233(1):1–13. <a href="https://pubmed.ncbi.nlm.nih.gov/15615615/" target="_blank" rel="noopener">doi:10.1016/j.jtbi.2004.08.029</a></li>
+    <li id="r3">Hall KD. What is the required energy deficit per unit weight loss? <i>Int J Obes</i>. 2008;32(3):573–576. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC2376744/" target="_blank" rel="noopener">PMC2376744</a></li>
+    <li id="r4">Wishnofsky M. Caloric equivalents of gained or lost weight. <i>Am J Clin Nutr</i>. 1958;6:542–546.</li>
+    <li id="r5">Fernández-Elías VE ym. Relationship between muscle water and glycogen recovery after prolonged exercise in the heat in humans. <i>Eur J Appl Physiol</i>. 2015. <a href="https://doi.org/10.1007/s00421-015-3175-z" target="_blank" rel="noopener">doi:10.1007/s00421-015-3175-z</a></li>
+    <li id="r6">Helms ER, Aragon AA, Fitschen PJ. Evidence-based recommendations for natural bodybuilding contest preparation: nutrition and supplementation. <i>J Int Soc Sports Nutr</i>. 2014;11:20. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4033492/" target="_blank" rel="noopener">doi:10.1186/1550-2783-11-20</a></li>
+    <li id="r7">Garthe I, Raastad T, Refsnes PE, Koivisto A, Sundgot-Borgen J. Effect of two different weight-loss rates on body composition and strength and power-related performance in elite athletes. <i>Int J Sport Nutr Exerc Metab</i>. 2011;21(2):97–104. <a href="https://lida.sport-iat.de/ta/Record/4020442?lng=en" target="_blank" rel="noopener">Tiivistelmä</a></li>
+    <li id="r8">World Health Organization. <i>Obesity: preventing and managing the global epidemic</i>. WHO Technical Report Series 894. Geneva: WHO; 2000.</li>
+    <li id="r9">Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO. A new predictive equation for resting energy expenditure in healthy individuals. <i>Am J Clin Nutr</i>. 1990;51(2):241–247. <a href="https://doi.org/10.1093/ajcn/51.2.241" target="_blank" rel="noopener">doi:10.1093/ajcn/51.2.241</a></li>
+    <li id="r10">Reale R, Slater G, Burke LM. Acute-weight-loss strategies for combat sports and applications to Olympic success. <i>Int J Sports Physiol Perform</i>. 2017;12(2):142–151. <a href="https://doi.org/10.1123/ijspp.2016-0211" target="_blank" rel="noopener">doi:10.1123/ijspp.2016-0211</a></li>
+    <li id="r11">Rossow LM, Fukuda DH, Fahs CA, Loenneke JP, Stout JR. Natural bodybuilding competition preparation and recovery: a 12-month case study. <i>Int J Sports Physiol Perform</i>. 2013;8(5):582–592. <a href="https://pubmed.ncbi.nlm.nih.gov/23412685/" target="_blank" rel="noopener">doi:10.1123/ijspp.8.5.582</a></li>
+    <li id="r12">Forbes GB. Body fat content influences the body composition response to nutrition and exercise. <i>Ann N Y Acad Sci</i>. 2000;904:359–365. <a href="https://pubmed.ncbi.nlm.nih.gov/10865771/" target="_blank" rel="noopener">doi:10.1111/j.1749-6632.2000.tb06482.x</a></li>
+    <li id="r13">Hall KD. Body fat and fat-free mass inter-relationships: Forbes's theory revisited. <i>Br J Nutr</i>. 2007;97(6):1059–1063. <a href="https://pubmed.ncbi.nlm.nih.gov/17367567/" target="_blank" rel="noopener">doi:10.1017/S0007114507691946</a></li>
+    <li id="r14">Helms ER, Zinn C, Rowlands DS, Brown SR. A systematic review of dietary protein during caloric restriction in resistance trained lean athletes: a case for higher intakes. <i>Int J Sport Nutr Exerc Metab</i>. 2014;24(2):127–138. <a href="https://pubmed.ncbi.nlm.nih.gov/24092765/" target="_blank" rel="noopener">PubMed</a></li>
+    <li id="r15">Longland TM, Oikawa SY, Mitchell CJ, Devries MC, Phillips SM. Higher compared with lower dietary protein during an energy deficit combined with intense exercise promotes greater lean mass gain and fat mass loss: a randomized trial. <i>Am J Clin Nutr</i>. 2016;103(3):738–746. <a href="https://pubmed.ncbi.nlm.nih.gov/26817506/" target="_blank" rel="noopener">doi:10.3945/ajcn.115.119339</a></li>
+    <li id="r16">Hall KD, Sacks G, Chandramohan D ym. Quantification of the effect of energy imbalance on bodyweight. <i>Lancet</i>. 2011;378:826–837. <a href="https://doi.org/10.1016/S0140-6736(11)60812-X" target="_blank" rel="noopener">doi:10.1016/S0140-6736(11)60812-X</a> · <a href="https://www.niddk.nih.gov/-/media/Files/Labs-Branches-Sections/laboratory-biological-modeling/integrative-physiology-section/Hall-Lancet-Web-Appendix_508.pdf" target="_blank" rel="noopener">mallin yhtälöt (verkkoliite)</a></li>
+    <li id="r17">Leibel RL, Rosenbaum M, Hirsch J. Changes in energy expenditure resulting from altered body weight. <i>N Engl J Med</i>. 1995;332(10):621–628.</li>
+    <li id="r18">Rosenbaum M, Goldsmith R, Bloomfield D ym. Low-dose leptin reverses skeletal muscle, autonomic, and neuroendocrine adaptations to maintenance of reduced weight. <i>J Clin Invest</i>. 2005;115(12):3579–3586. <a href="https://www.jci.org/articles/view/JCI25977" target="_blank" rel="noopener">JCI</a></li>
+    <li id="r19">Nunes CL, Casanova N, Francisco R ym. Does adaptive thermogenesis occur after weight loss in adults? A systematic review. <i>Br J Nutr</i>. 2022;127:451–469. <a href="https://doi.org/10.1017/S0007114521001094" target="_blank" rel="noopener">doi:10.1017/S0007114521001094</a></li>
+    <li id="r20">Dulloo AG, Jacquet J. Adaptive reduction in basal metabolic rate in response to food deprivation in humans: a role for feedback signals from fat stores. <i>Am J Clin Nutr</i>. 1998;68(3):599–606. <a href="https://pubmed.ncbi.nlm.nih.gov/9734736/" target="_blank" rel="noopener">doi:10.1093/ajcn/68.3.599</a></li>
+    <li id="r21">Dulloo AG. Adaptive thermogenesis driving catch-up fat during weight regain: a role for skeletal muscle hypothyroidism and a risk for sarcopenic obesity. <i>Rev Endocr Metab Disord</i>. 2025. <a href="https://doi.org/10.1007/s11154-025-09970-9" target="_blank" rel="noopener">doi:10.1007/s11154-025-09970-9</a></li>
+    <li id="r22">Martin A, Fox D, Murphy CA, Hofmann H, Koehler K. Tissue losses and metabolic adaptations both contribute to the reduction in resting metabolic rate following weight loss. <i>Int J Obes</i>. 2022;46:1168–1175. <a href="https://doi.org/10.1038/s41366-022-01090-7" target="_blank" rel="noopener">doi:10.1038/s41366-022-01090-7</a></li>
+    <li id="r23">Cahill GF Jr. Fuel metabolism in starvation. <i>Annu Rev Nutr</i>. 2006;26:1–22. <a href="https://pubmed.ncbi.nlm.nih.gov/16848698/" target="_blank" rel="noopener">PubMed</a></li>
+    <li id="r24">American Council on Exercise. Percent body fat norms for men and women. <a href="https://www.acefitness.org/resources/everyone/tools-calculators/percent-body-fat-calculator/" target="_blank" rel="noopener">acefitness.org</a></li>
+    <li id="r25">Jensen MD, Ryan DH, Apovian CM ym. 2013 AHA/ACC/TOS guideline for the management of overweight and obesity in adults. <i>Circulation</i>. 2014;129(25 Suppl 2):S102–S138. <a href="https://doi.org/10.1161/01.cir.0000437739.71477.ee" target="_blank" rel="noopener">doi:10.1161/01.cir.0000437739.71477.ee</a></li>
+    <li id="r26">Mountjoy M ym. 2023 International Olympic Committee's (IOC) consensus statement on Relative Energy Deficiency in Sport (REDs). <i>Br J Sports Med</i>. 2023;57(17):1073–1097. <a href="https://pubmed.ncbi.nlm.nih.gov/37752011/" target="_blank" rel="noopener">doi:10.1136/bjsports-2023-106994</a></li>
+  </ol>
+  <p class="closing">Laskentamallin vakiot: 69,3 kcal/kg/vrk (Alpert 2005), 9 440 ja 1 816 kcal/kg (Hall 2008), ruoan lämpövaikutus 10 % ja nopea säästöliekki 14 % syömisen vähennyksestä (Hall ym. 2011). Kaikki simulaattorin luvut lasketaan selaimessa samoilla kaavoilla kuin esseen esimerkki.</p>
+</article>
+</main>
+
+<script>
+/* Rasvanpolton katto – laskentamalli (v3).
+   Kaikki vakiot ja kaavat on dokumentoitu sivun esseessä (lähteet [n]).
+
+   Kulutus (kcal/vrk) jaetaan osiin Hallin ym. (2011) mallin tapaan:
+     kulutus = lepoaineenvaihdunta + liikunta + ruoan lämpövaikutus + säästöliekki
+     - lepoaineenvaihdunta lasketaan joka viikko nykyisestä painosta ja rasvattomasta massasta
+     - liikunnan kulutus on suhteessa kehon painoon (kevyemmän kehon liikuttaminen maksaa vähemmän)
+     - ruoan lämpövaikutus on 10 % energiansaannista
+     - säästöliekissä on kaksi osaa:
+         nopea: 14 % syömisen vähennyksestä, kehittyy 14 vrk:n aikavakiolla (Hall ym. 2011)
+         hidas: kasvaa sitä mukaa kuin rasvavarasto tyhjenee (Dulloo & Jacquet 1998; Martin ym. 2022)
+       Molemmat kerrotaan käyttäjän valitsemalla voimakkuudella (oletus 50 % = varovainen arvio). */
+const Model = (() => {
+  const K = {
+    ALPERT: 290 / 4.184,      // 69,3 kcal / kg rasvaa / vrk  (Alpert 2005: 290 ± 25 kJ/kg/vrk)
+    RHO_F: 39500 / 4.184,     // 9 441 kcal / kg rasvamassaa (Hall 2008: 39,5 MJ/kg)
+    RHO_L: 7600 / 4.184,      // 1 816 kcal / kg rasvatonta massaa (Hall 2008: 7,6 MJ/kg)
+    TEF: 0.10,                // ruoan lämpövaikutus, osuus energiansaannista (Hall ym. 2011: βTEF = 0,1)
+    AT_B: 0.14,               // nopea säästöliekki, osuus syömisen vähennyksestä (Hall ym. 2011: βAT = 0,14)
+    AT_TAU: 14,               // nopean säästöliekin aikavakio, vrk (Hall ym. 2011: τAT = 14 vrk)
+    AT_K: 0.20,               // hidas säästöliekki: osuus lähtötason lepoaineenvaihdunnasta, kun rasva on kulunut kokonaan
+    AT_DEFAULT: 0.5,          // oletusvoimakkuus (varovainen): puolet tutkimusten keskitasosta
+    BMI_FLOOR: 18.5,          // WHO: alipainon raja – tavoitepainon ainoa kova alaraja
+    BF_FLOOR: { m: 0.03, f: 0.11 },      // rasvan alaraja: tämän alle rasvaa ei mallissa polteta (ACE: välttämätön rasva 2–5 % / 10–13 %)
+    BF_ATHLETE: { m: 0.06, f: 0.14 },    // ACE: urheilijoiden vaihteluvälin alaraja – tämän alittavasta ennusteesta varoitetaan
+    KCAL_FLOOR: { m: 1500, f: 1200 },    // Jensen ym. 2014 (AHA/ACC/TOS): suunnitelman energian alaraja
+    PAL: [1.2, 1.375, 1.55, 1.725, 1.9],
+    PACE: {
+      varovainen: { s: 0.6,  rate: 0.007 },
+      suositeltu: { s: 0.8,  rate: 0.010 },
+      katto:      { s: 1.0,  rate: 0.010 },
+      yli:        { s: 1.25, rate: 0.015 }
+    },
+    MAX_WEEKS: 520
+  };
+
+  const sq = x => x * x;
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+  function bmrMifflin(w, h, age, sex) {
+    return 10 * w + 6.25 * h - 5 * age + (sex === 'm' ? 5 : -161);
+  }
+  function bmrFFM(ffm) { return 19.7 * ffm + 413; }
+  /* Lepoaineenvaihdunta: kahden Mifflin ym. (1990) yhtälön keskiarvo. */
+  function bmr(w, ffm, h, age, sex) {
+    return (bmrMifflin(w, h, age, sex) + bmrFFM(ffm)) / 2;
+  }
+
+  function bmi(w, h) { return w / sq(h / 100); }
+  function bmiClass(b) {
+    if (b < 16) return { key: 'u3', label: 'Vaikea alipaino' };
+    if (b < 17) return { key: 'u2', label: 'Kohtalainen alipaino' };
+    if (b < 18.5) return { key: 'u1', label: 'Lievä alipaino' };
+    if (b < 25) return { key: 'n', label: 'Normaalipaino' };
+    if (b < 30) return { key: 'o', label: 'Ylipaino' };
+    if (b < 35) return { key: 'l1', label: 'Lihavuus I' };
+    if (b < 40) return { key: 'l2', label: 'Lihavuus II' };
+    return { key: 'l3', label: 'Lihavuus III' };
+  }
+
+  /* Tavoitepainon kova alaraja on painoindeksi 18,5.
+     leanKeep = pienin paino, jonka voi saavuttaa pelkällä rasvanpudotuksella
+     (rasvaton massa säilyy ja rasvaa jää vähintään rasvan alarajan verran). */
+  const floorOf = (sex, bfMin) => Math.max(K.BF_FLOOR[sex], bfMin || 0);
+  function minTarget(ffm, h, sex, bfMin) {
+    return { value: K.BMI_FLOOR * sq(h / 100), leanKeep: ffm / (1 - floorOf(sex, bfMin)) };
+  }
+
+  /* Tavoitteen loppukoostumus: rasvaa vähintään alarajan verran, loput rasvattomasta massasta. */
+  function targetComp(L0, Wt, sex, bfMin) {
+    const Lt = Math.min(L0, (1 - floorOf(sex, bfMin)) * Wt);
+    return { Lt, Ft: Wt - Lt, leanLoss: L0 - Lt };
+  }
+
+  /* Kulutuksen korjauskerroin: käyttäjä voi sovittaa kaavan arvion omaan toteutuneeseen kulutukseensa. */
+  const corrOf = inp => 1 + clamp(inp.corr || 0, -0.5, 0.5);
+  /* Säästöliekin voimakkuus: 0 = ei säästöliekkiä, 1 = tutkimusten keskitaso. */
+  const atOf = inp => clamp(typeof inp.at === 'number' && isFinite(inp.at) ? inp.at : K.AT_DEFAULT, 0, 2);
+  /* Liikunnan kulutus lähtötilanteessa: kulutus − lepo − ruoan lämpövaikutus, kun syödään kulutuksen verran. */
+  const paeOf = (rmr0, pal) => Math.max(0, rmr0 * ((1 - K.TEF) * K.PAL[pal] - 1));
+
+  function now(inp) {
+    const { sex, age, h, w, bf, pal } = inp;
+    const F = w * bf, L = w - F;
+    const b = bmr(w, L, h, age, sex);
+    const tdeePred = b * K.PAL[pal];
+    const tdee = tdeePred * corrOf(inp);
+    const emax = K.ALPERT * F;
+    return {
+      F, L, bmr: b, bmrA: bmrMifflin(w, h, age, sex), bmrB: bmrFFM(L), tdeePred, tdee, emax,
+      emaxFatG: emax / K.RHO_F * 1000,
+      emaxWeekKg: 7 * emax / K.RHO_F,
+      bmi: bmi(w, h), ffmi: L / sq(h / 100), fmi: F / sq(h / 100)
+    };
+  }
+
+  /* Viikkosuunnitelma.
+     q = osuus painonpudotuksesta, jonka tavoite pakottaa rasvattomaan massaan
+         (jäljellä oleva vaadittu menetys / jäljellä oleva pudotus).
+     Rasvan osuutta rajaa s × katto, kokonaispudotusta rate × paino ja vajetta kulutus − alaraja.
+     Jos s > 1, katon ylittävä osa vajeesta katetaan rasvattomasta massasta (Alpert 2005).
+     Ilman voimaharjoittelua (train === false) osuus on vähintään Forbesin 10,4 / (10,4 + F) (Hall 2007).
+
+     Kulutus viikolla k (kcal/vrk), kun I on energiansaanti:
+       kulutus = R + P + 0,1 × I + A_hidas + A_nopea
+       R = lepoaineenvaihdunta (1 + corr) × Mifflin(W, L) · P = P0 × W / W0
+       A_hidas = −v × 0,20 × R0 × (1 − F / F0)
+       A_nopea seuraa tavoitearvoa v × 0,14 × (I − I0) ensimmäisen kertaluvun viiveellä (τ = 14 vrk):
+         viikon keskiarvo = (1 − ψ) × tavoite + ψ × A_alku,   ψ = (τ/7)(1 − e^(−7/τ)) ≈ 0,79
+         viikon lopussa   = φ × tavoite + (1 − φ) × A_alku,   φ = 1 − e^(−7/τ) ≈ 0,39
+     Vaje d = kulutus − I, joten I = (R + P + A_hidas + ψ A_alku − a I0 − d) / (0,9 − a), a = (1 − ψ) v 0,14. */
+  function plan(inp) {
+    const { sex, age, h, w, bf, pal, target } = inp;
+    const pace = K.PACE[inp.pace] || K.PACE.suositeltu;
+    const bfMin = floorOf(sex, inp.bfMin);
+    let W = w, F = w * bf, L = w - F;
+    const Wt = target;
+    const tc = targetComp(L, Wt, sex, inp.bfMin);
+    const out = { ok: true, reason: null, weeks: [], L0: L, F0: F, W0: w, Wt, Lt: tc.Lt, Ft: tc.Ft, reqLean: tc.leanLoss, total: 0 };
+    if (!(Wt < W - 1e-9)) { out.ok = false; out.reason = 'no-loss'; return out; }
+    if (bf <= K.BF_FLOOR[sex] + 1e-9) { out.ok = false; out.reason = 'bf-floor'; return out; }
+    let t = 0;
+    const cf = corrOf(inp), v = atOf(inp);
+    const F0 = F, W0 = W;
+    const R0 = cf * bmr(W, L, h, age, sex);                  // lepoaineenvaihdunta lähtötilanteessa
+    const P0 = paeOf(R0, pal);                              // liikunnan kulutus lähtötilanteessa
+    const I0 = R0 * K.PAL[pal];                             // ylläpitokalorit = kulutus lähtötilanteessa
+    const phi = 1 - Math.exp(-7 / K.AT_TAU);
+    const psi = (K.AT_TAU / 7) * phi;
+    const a = (1 - psi) * v * K.AT_B;
+    let Afast = 0;                                          // nopean säästöliekin tila viikon alussa (kcal/vrk, ≤ 0)
+    out.I0 = I0; out.atStrength = v;
+    for (let i = 0; i < K.MAX_WEEKS && W > Wt + 1e-6; i++) {
+      const emax = K.ALPERT * F;
+      const b = bmr(W, L, h, age, sex);
+      const rmr = cf * b;
+      const pae = P0 * W / W0;
+      const atSlow = -v * K.AT_K * R0 * Math.max(0, 1 - F / F0);
+      const B = rmr + pae + atSlow + psi * Afast - a * I0;         // kulutus ilman saannista riippuvia osia
+      const cap = B - (1 - K.TEF - a) * K.KCAL_FLOOR[sex];         // suurin vaje, jolla saanti ≥ alaraja
+      if (cap <= 1) { out.ok = false; out.reason = 'floor'; break; }
+      const qReq = clamp(Math.max(0, L - (1 - bfMin) * Wt) / (W - Wt), 0, 1);
+      const q = inp.train === false ? Math.max(qReq, forbesShare(F)) : qReq;   // ilman voimaharjoittelua: Forbes
+      const ePerKg = (1 - q) * K.RHO_F + q * K.RHO_L;       // kcal / kg perusosuuden pudotusta
+      const fatCap = q < 1 ? 7 * Math.min(pace.s, 1) * emax / ((1 - q) * K.RHO_F) : Infinity;
+      const rateCap = pace.rate * W;
+      const enCap = 7 * cap / ePerKg;
+      const base = Math.min(fatCap, rateCap, enCap);
+      const limiter = base === fatCap ? 'alpert' : base === rateCap ? 'rate' : 'floor';
+      let extra = 0;                                         // katon ylittävä rasvattoman massan menetys (kg/vk)
+      if (pace.s > 1 && limiter === 'alpert') {
+        extra = Math.max(0, Math.min(
+          7 * (pace.s - 1) * emax / K.RHO_L,
+          rateCap - base,
+          (7 * cap - base * ePerKg) / K.RHO_L));
+      }
+      let dF = (1 - q) * base, dL = q * base + extra;
+      const full = dF + dL;
+      if (full <= 1e-6) { out.ok = false; out.reason = 'floor'; break; }
+      const d = (dF * K.RHO_F + dL * K.RHO_L) / 7;          // kcal / vrk
+      const intake = (B - d) / (1 - K.TEF - a);
+      const atTarget = v * K.AT_B * (intake - I0);
+      const atFast = (1 - psi) * atTarget + psi * Afast;    // viikon keskiarvo
+      const atEnd = phi * atTarget + (1 - phi) * Afast;     // tila seuraavan viikon alussa
+      const tef = K.TEF * intake;
+      const at = atFast + atSlow;
+      const tdee = rmr + pae + tef + at;                     // = intake + d
+      let frac = 1;
+      if (W - full < Wt) { frac = (W - Wt) / full; dF *= frac; dL *= frac; }
+      out.weeks.push({
+        i, t0: t, W, F, L, emax, bmr: b, rmr, pae, tef, atFast, atSlow, at, tdee, tdeeNoAT: tdee - at, d, intake,
+        loss: dF + dL, lossF: dF, lossL: dL,
+        weekRate: full, weekF: (1 - q) * base, weekL: q * base + extra,
+        frac, limiter, q, over: extra > 0
+      });
+      Afast = atEnd;
+      F -= dF; L -= dL; W = F + L; t += frac;
+    }
+    out.total = t;
+    out.end = { W, F, L };
+    out.reached = W <= Wt + 1e-4;
+    out.leanLost = out.L0 - L;
+    return out;
+  }
+
+  /* Tila hetkellä t (viikkoina), lineaarinen interpolointi viikon sisällä. */
+  function at(p, t) {
+    if (!p.weeks.length) return { W: p.W0, F: p.F0, L: p.L0 };
+    for (const wk of p.weeks) {
+      if (t <= wk.t0 + wk.frac) {
+        const u = clamp((t - wk.t0) / wk.frac, 0, 1);
+        const F = wk.F - u * wk.lossF, L = wk.L - u * wk.lossL;
+        return { W: F + L, F, L, wk };
+      }
+    }
+    return { W: p.end.W, F: p.end.F, L: p.end.L, wk: p.weeks[p.weeks.length - 1] };
+  }
+
+  /* Aika, jolloin paino alittaa rajan Wx (viikkoina). */
+  function timeAtWeight(p, Wx) {
+    for (const wk of p.weeks) {
+      const Wend = wk.W - wk.loss;
+      if (Wend <= Wx + 1e-9) {
+        const u = (wk.W - Wx) / wk.loss;
+        return wk.t0 + clamp(u, 0, 1) * wk.frac;
+      }
+    }
+    return p.total;
+  }
+
+  /* Oma syöminen: vaje vuorokaudessa ja sen jakautuminen katon alle ja yli (Alpert 2005)
+     sekä kertymä jakson ajalta (päivät). Katto pidetään jakson ajan vakiona. */
+  function dietCheck(inp, intake, days) {
+    const n = now(inp);
+    const v = atOf(inp);
+    // Kulutus jakson keskiarvona: ruoan lämpövaikutus seuraa saantia heti, nopea säästöliekki
+    // kehittyy aikavakiolla 14 vrk (keskiarvo jakson ajalta). Hidas osa on lyhyellä jaksolla pieni, eikä sitä lasketa.
+    const g = days > 0 ? 1 - (K.AT_TAU / days) * (1 - Math.exp(-days / K.AT_TAU)) : 0;
+    const tefDrop = K.TEF * (n.tdee - intake);               // > 0, kun syödään alle ylläpidon
+    const at = v * K.AT_B * (intake - n.tdee) * g;            // ≤ 0, kun syödään alle ylläpidon
+    const tdee = n.tdee - tefDrop + at;
+    const D = tdee - intake;
+    const fatE = Math.max(0, Math.min(D, n.emax));
+    const leanE = Math.max(0, D - n.emax);
+    return {
+      D, fatE, leanE, emax: n.emax, tdee, tdee0: n.tdee, tefDrop, at, days,
+      fatGDay: fatE / K.RHO_F * 1000,
+      leanGDay: leanE / K.RHO_L * 1000,
+      fatKg: days * fatE / K.RHO_F,
+      leanKg: days * leanE / K.RHO_L,
+      belowFloor: intake < K.KCAL_FLOOR[inp.sex],
+      vlcd: intake < 800,
+      fast: intake <= 0
+    };
+  }
+
+  /* Forbesin teoria (Hall 2007): rasvattoman massan osuus painonmuutoksesta. */
+  function forbesShare(F) { return 10.4 / (10.4 + F); }
+
+  return { K, bmr, bmrMifflin, bmrFFM, bmi, bmiClass, minTarget, targetComp, now, plan, at, timeAtWeight, dietCheck, forbesShare, paeOf };
+})();
+
+
+/* Sivuprofiilin generaattori.
+   Pisteet: [id, tyyppi, yM, xM, muM, faM, yN, xN, muN, faN]
+   y = osuus pituudesta (0 = lattia), x = syvyys cm viitepituudella (etu +, taka −).
+   tyyppi: 'b' takapinta, 'f' etupinta, 'x' kiinteä (pää, jalkaterä, käsi).
+   mu = cm / FFMI-yksikkö, fa = cm / FMI-yksikkö. */
+const Body = (() => {
+  const REF = {
+    m: { h: 178, ffmi: 19.5, fmi: 4.5, leanFmi: 1.0 },
+    f: { h: 165, ffmi: 15.5, fmi: 6.8, leanFmi: 2.6 }
+  };
+  const P = [
+    ['sole_heel','x', .000,-3.0,0,0,      .000,-2.8,0,0],
+    ['heel','x',      .013,-4.8,0,0,      .013,-4.4,0,0],
+    ['achilles','b',  .052,-3.0,0,.02,    .052,-2.7,0,.02],
+    ['calf_low','b',  .110,-3.9,.08,.05,  .110,-3.6,.08,.06],
+    ['calf_mid','b',  .170,-5.5,.18,.10,  .170,-5.1,.18,.12],
+    ['calf_max','b',  .215,-6.9,.25,.14,  .212,-6.3,.25,.16],
+    ['calf_top','b',  .255,-6.0,.18,.12,  .252,-5.5,.18,.14],
+    ['knee_back','b', .288,-4.8,.08,.10,  .285,-4.6,.08,.14],
+    ['ham_low','b',   .325,-5.7,.18,.18,  .322,-5.8,.18,.26],
+    ['ham_mid','b',   .375,-7.0,.28,.25,  .372,-7.3,.28,.40],
+    ['ham_up','b',    .425,-8.6,.32,.35,  .420,-9.2,.32,.55],
+    ['glute_fold','b',.458,-10.6,.38,.45, .452,-11.6,.38,.70],
+    ['glute_max','b', .500,-13.0,.48,.55, .492,-14.2,.48,.82],
+    ['glute_top','b', .540,-11.6,.32,.45, .535,-12.2,.32,.60],
+    ['sacrum','b',    .572,-9.2,.12,.38,  .570,-9.0,.12,.40],
+    ['lumbar','b',    .607,-8.2,.10,.36,  .607,-7.4,.10,.32],
+    ['back_low','b',  .650,-8.8,.22,.35,  .650,-7.9,.22,.30],
+    ['back_mid','b',  .700,-10.1,.36,.32, .700,-9.0,.36,.28],
+    ['scapula','b',   .755,-10.9,.45,.28, .752,-9.6,.45,.25],
+    ['back_up','b',   .795,-9.8,.42,.22,  .792,-8.6,.42,.20],
+    ['c7','b',        .828,-6.6,.32,.20,  .826,-5.7,.30,.18],
+    ['nape','b',      .855,-4.2,.18,.12,  .853,-3.7,.16,.10],
+    ['occ_base','x',  .880,-5.6,0,0,      .879,-5.2,0,0],
+    ['occiput','x',   .920,-8.0,0,0,      .920,-7.6,0,0],
+    ['skull_back','x',.960,-7.0,0,0,      .960,-6.7,0,0],
+    ['crown','x',     .990,-3.0,0,0,      .990,-2.9,0,0],
+    ['vertex','x',   1.000, 1.5,0,0,     1.000, 1.3,0,0],
+    ['skull_front','x',.985,7.5,0,0,      .985, 7.2,0,0],
+    ['forehead','x',  .958,11.0,0,0,      .958,10.6,0,0],
+    ['brow','x',      .940,12.0,0,0,      .940,11.3,0,0],
+    ['nasion','x',    .931,11.6,0,0,      .932,11.0,0,0],
+    ['nose_tip','x',  .913,14.0,0,0,      .914,13.2,0,0],
+    ['subnasale','x', .904,12.2,0,0,      .905,11.6,0,0],
+    ['lip_up','x',    .896,12.5,0,0,      .897,12.0,0,0],
+    ['mouth','x',     .890,11.9,0,0,      .891,11.4,0,0],
+    ['lip_low','x',   .884,12.2,0,0,      .885,11.7,0,0],
+    ['chin_dip','x',  .877,11.5,0,0,      .878,11.0,0,0],
+    ['chin','x',      .868,11.9,0,0,      .869,11.3,0,0],
+    ['chin_under','f',.859,10.0,0,.30,    .860, 9.4,0,.25],
+    ['submental','f', .852, 7.6,.02,.40,  .853, 7.0,.02,.32],
+    ['throat','f',    .843, 6.3,.05,.25,  .844, 5.6,.05,.20],
+    ['neck_low','f',  .828, 6.6,.08,.22,  .828, 5.8,.08,.18],
+    ['jugular','f',   .815, 8.2,.18,.22,  .815, 7.2,.15,.20],
+    ['chest_up','f',  .790,11.0,.38,.28,  .785, 9.4,.30,.30],
+    ['pec','f',       .748,13.0,.52,.48,  .728,14.0,.30,.85],
+    ['pec_low','f',   .718,12.6,.42,.55,  .703,12.4,.20,.70],
+    ['ribs','f',      .690,12.0,.15,.75,  .683, 9.9,.10,.45],
+    ['abd_up','f',    .650,12.0,.08,1.05, .645,10.0,.06,.70],
+    ['navel','f',     .592,12.8,.08,1.25, .595,10.8,.06,.85],
+    ['abd_low','f',   .545,12.4,.05,1.15, .548,11.4,.05,1.00],
+    ['pubic','f',     .500,11.0,.05,.70,  .500,10.6,.05,.70],
+    ['groin','f',     .470,10.0,.20,.45,  .468, 9.8,.20,.50],
+    ['thigh_up','f',  .440, 9.8,.42,.35,  .438, 9.9,.40,.48],
+    ['thigh_mid','f', .375, 8.6,.42,.28,  .372, 8.6,.40,.40],
+    ['thigh_low','f', .322, 7.2,.30,.18,  .320, 7.2,.28,.25],
+    ['patella','f',   .288, 6.7,.05,.06,  .285, 6.4,.05,.10],
+    ['knee_low','f',  .262, 5.5,.05,.05,  .260, 5.2,.05,.06],
+    ['shin_up','f',   .220, 4.7,.08,.06,  .218, 4.4,.08,.07],
+    ['shin_mid','f',  .150, 4.0,.05,.05,  .150, 3.7,.05,.05],
+    ['shin_low','f',  .090, 3.4,.03,.03,  .090, 3.1,.03,.03],
+    ['ankle_f','x',   .050, 3.6,0,0,      .050, 3.3,0,0],
+    ['instep','x',    .036, 8.5,0,0,      .036, 7.9,0,0],
+    ['toes_top','x',  .018,17.0,0,0,      .018,15.6,0,0],
+    ['toe_tip','x',   .007,22.0,0,0,      .007,20.4,0,0],
+    ['toe_bottom','x',.000,21.0,0,0,      .000,19.4,0,0],
+    ['sole_ball','x', .000,14.0,0,0,      .000,13.0,0,0],
+    ['sole_arch','x', .005, 5.0,0,0,      .005, 4.6,0,0]
+  ];
+  const A = [
+    ['delt_top','f',  .826, 1.0,.10,.05,  .824, 0.8,.08,.05],
+    ['delt_front','f',.800, 5.6,.25,.15,  .798, 4.6,.20,.15],
+    ['bicep_up','f',  .760, 4.6,.22,.12,  .758, 3.9,.18,.14],
+    ['bicep','f',     .712, 4.4,.25,.12,  .712, 3.7,.20,.16],
+    ['elbow_f','f',   .640, 2.8,.08,.08,  .640, 2.4,.06,.10],
+    ['forearm_f','f', .598, 3.4,.15,.08,  .598, 2.8,.12,.08],
+    ['wrist_f','f',   .505, 2.6,.03,.03,  .505, 2.2,.03,.03],
+    ['thumb','x',     .472, 4.3,0,0,      .474, 3.8,0,0],
+    ['fingers_f','x', .425, 4.1,0,0,      .428, 3.6,0,0],
+    ['fingertip','x', .386, 1.6,0,0,      .392, 1.4,0,0],
+    ['fingers_b','x', .402,-1.7,0,0,      .406,-1.5,0,0],
+    ['hand_b','x',    .452,-2.4,0,0,      .455,-2.1,0,0],
+    ['wrist_b','b',   .500,-1.8,.03,.03,  .500,-1.6,.03,.04],
+    ['forearm_b','b', .580,-2.6,.12,.08,  .580,-2.3,.10,.10],
+    ['elbow_b','b',   .632,-4.0,.05,.10,  .632,-3.5,.05,.14],
+    ['tricep','b',    .700,-5.2,.25,.22,  .700,-4.6,.20,.32],
+    ['tricep_up','b', .760,-5.6,.22,.18,  .758,-4.9,.18,.26],
+    ['delt_back','b', .800,-5.0,.22,.15,  .798,-4.3,.18,.14]
+  ];
+  const ARM_DX = -0.6;
+
+  /* Laskee pisteet. sexMix: 0 = mies, 1 = nainen (sallii pehmeän siirtymän). */
+  function points(table, o, dx) {
+    const mix = o.sexMix;
+    const lerp = (a, b) => a + (b - a) * mix;
+    const href = lerp(REF.m.h, REF.f.h);
+    const ffmiRef = lerp(REF.m.ffmi, REF.f.ffmi);
+    const fmiRef = lerp(REF.m.fmi, REF.f.fmi);
+    const lin = o.h / href;                 // pää, kädet, jalkaterät
+    const body = Math.pow(lin, 0.75);       // vartalon syvyydet
+    const dM = o.ffmi - ffmiRef, dF = o.fmi - fmiRef;
+    return table.map(r => {
+      const y = lerp(r[2], r[6]), x0 = lerp(r[3], r[7]);
+      const mu = lerp(r[4], r[8]), fa = lerp(r[5], r[9]);
+      let x;
+      if (r[1] === 'x') x = x0 * lin * (y >= 0.865 ? 0.93 : 1);
+      else {
+        const s = r[1] === 'f' ? 1 : -1;
+        const base = Math.abs(x0);
+        const d = Math.max(base * 0.45, base + mu * dM + fa * dF);
+        x = s * d * body;
+      }
+      return [x + (dx || 0) * lin, -y * o.h];
+    });
+  }
+
+  /* Keskeisvoimainen Catmull–Rom → kuutiolliset Bézier-käyrät, suljettu polku. */
+  function path(pts) {
+    const n = pts.length, a = 0.5;
+    const d = (p, q) => Math.hypot(q[0] - p[0], q[1] - p[1]);
+    let s = `M${pts[0][0].toFixed(2)} ${pts[0][1].toFixed(2)}`;
+    for (let i = 0; i < n; i++) {
+      const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
+      const d1 = Math.pow(d(p0, p1), a), d2 = Math.pow(d(p1, p2), a), d3 = Math.pow(d(p2, p3), a);
+      const c1 = [0, 1].map(k => {
+        const N = 3 * d1 * (d1 + d2);
+        return N < 1e-6 ? p1[k] : (d1 * d1 * p2[k] - d2 * d2 * p0[k] + (2 * d1 * d1 + 3 * d1 * d2 + d2 * d2) * p1[k]) / N;
+      });
+      const c2 = [0, 1].map(k => {
+        const M = 3 * d3 * (d3 + d2);
+        return M < 1e-6 ? p2[k] : (d3 * d3 * p1[k] - d2 * d2 * p3[k] + (2 * d3 * d3 + 3 * d3 * d2 + d2 * d2) * p2[k]) / M;
+      });
+      s += `C${c1[0].toFixed(2)} ${c1[1].toFixed(2)} ${c2[0].toFixed(2)} ${c2[1].toFixed(2)} ${p2[0].toFixed(2)} ${p2[1].toFixed(2)}`;
+    }
+    return s + 'Z';
+  }
+
+  /* o: { sexMix, h, ffmi, fmi } → polut ulkoreunalle ja rasvattomalle ytimelle. */
+  function shapes(o) {
+    const leanFmi = REF.m.leanFmi + (REF.f.leanFmi - REF.m.leanFmi) * o.sexMix;
+    const lean = { ...o, fmi: Math.min(o.fmi, leanFmi) };
+    return {
+      body: path(points(P, o)),
+      bodyLean: path(points(P, lean)),
+      arm: path(points(A, o, ARM_DX)),
+      armLean: path(points(A, lean, ARM_DX))
+    };
+  }
+
+  return { shapes, REF };
+})();
+
+
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const nf = (a, b) => new Intl.NumberFormat('fi-FI', { minimumFractionDigits: a, maximumFractionDigits: b === undefined ? a : b });
+  const N0 = nf(0), N1 = nf(1), N2 = nf(2), N3 = nf(0, 3);
+  const f0 = v => N0.format(v), f1 = v => N1.format(v), f2 = v => N2.format(v);
+  const k10 = v => N0.format(Math.round(v / 10) * 10);
+  const sgn = v => (Math.round(v / 10) * 10 < 0 ? '−' : '') + k10(Math.abs(v));   // −230 (kcal, kymmeniin)
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const r05 = v => Math.round(v * 2) / 2;
+  const reduced = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const K = Model.K;
+
+  const EXAMPLE = { sex: 'm', age: 30, h: 185, w: 105, bf: 31.5, pal: 3, corr: 0, at: 50, target: 80, pace: 'suositeltu', train: true, intake: null, days: 7, floorM: 3, floorF: 11 };
+  const AT_LABELS = { 0: 'Pois', 25: 'Pieni', 50: 'Varovainen', 75: 'Kohtalainen', 100: 'Keskitaso', 125: 'Suuri', 150: 'Voimakas' };
+  const FLOOR_RANGE = { m: [3, 12], f: [11, 20] };
+  const STORE = 'rasvanpolton-katto:v2';
+  const ACT = [
+    ['Istuva', 'vähän liikuntaa'],
+    ['Kevyt', '1–3 treeniä viikossa'],
+    ['Kohtalainen', '3–5 treeniä viikossa'],
+    ['Kova', '6–7 treeniä viikossa'],
+    ['Erittäin kova', 'fyysinen työ ja treeni']
+  ];
+  const PACE_IDS = { varovainen: 'pace-v', suositeltu: 'pace-s', katto: 'pace-k', yli: 'pace-y' };
+  const FIELDS = {
+    age:    { k: 'age', min: 18, max: 80, step: 1 },
+    height: { k: 'h', min: 145, max: 210, step: 1 },
+    weight: { k: 'w', min: 40, max: 200, step: 0.5 },
+    bf:     { k: 'bf', min: 4, max: 60, step: 0.5 },
+    pal:    { k: 'pal', min: 0, max: 4, step: 1 },
+    corr:   { k: 'corr', min: -30, max: 30, step: 1 },
+    adapt:  { k: 'at', min: 0, max: 150, step: 25 },
+    target: { k: 'target', min: 30, max: 199.5, step: 0.5 },
+    intake: { k: 'intake', min: 0, max: 5000, step: 50 },
+    days:   { k: 'days', min: 1, max: 28, step: 1 },
+    floor:  { k: null, min: 3, max: 20, step: 0.5 }
+  };
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORE);
+      if (!raw) return null;
+      const s = JSON.parse(raw);
+      const o = { ...EXAMPLE };
+      for (const f of Object.values(FIELDS)) {
+        if (f.k && typeof s[f.k] === 'number' && isFinite(s[f.k])) o[f.k] = clamp(s[f.k], f.min, f.max);
+      }
+      if (typeof s.floorM === 'number' && isFinite(s.floorM)) o.floorM = clamp(s.floorM, FLOOR_RANGE.m[0], FLOOR_RANGE.m[1]);
+      if (typeof s.floorF === 'number' && isFinite(s.floorF)) o.floorF = clamp(s.floorF, FLOOR_RANGE.f[0], FLOOR_RANGE.f[1]);
+      if (s.sex === 'm' || s.sex === 'f') o.sex = s.sex;
+      if (typeof s.pace === 'string' && K.PACE[s.pace]) o.pace = s.pace;
+      o.train = s.train !== false;
+      o.intake = (typeof s.intake === 'number' && isFinite(s.intake)) ? clamp(s.intake, 0, 5000) : null;
+      return o;
+    } catch (e) { return null; }
+  }
+  function save() { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) { /* ei tallennusta */ } }
+
+  let S = load() || { ...EXAMPLE };
+  /* S.target on käyttäjän toive. TGT on rajoihin sovitettu tavoite, jolla lasketaan:
+     toive säilyy, vaikka painoa tai pituutta säädettäisiin hetkeksi niin, ettei se ole sallittu. */
+  let NOW = null, P = null, T = 0, MT = null, STOP = '', TGT = S.target, REACH = null;
+  /* pin = valittu viikko (liukusäädin, klikkaus tai veto käyrällä, toisto): kehokuva näyttää sen.
+     hover = osoittimen viikko käyrällä: vain esikatselu käyrässä ja lukemassa. */
+  let pin = 0, hover = null;
+  let MIX = S.sex === 'f' ? 1 : 0, mixRaf = 0, playing = 0, FS = 4.5, CH = null;
+  const shown = () => hover == null ? pin : hover;
+
+  const isExample = () => ['sex', 'age', 'h', 'w', 'bf', 'pal', 'corr', 'at', 'target', 'pace', 'train', 'floorM', 'floorF'].every(k => S[k] === EXAMPLE[k]);
+  const floorPct = () => S.sex === 'm' ? S.floorM : S.floorF;
+  const pctTxt = v => N1.format(v).replace(',0', '');
+  const ratePct = () => ({ varovainen: '0,7', suositeltu: '1', katto: '1', yli: '1,5' })[S.pace];
+  const limText = lim => lim === 'rate'
+    ? `viikkotahti ${ratePct()} % painosta`
+    : lim === 'alpert'
+      ? `rasvavaraston katto (${Math.round(Math.min(1, K.PACE[S.pace].s) * 100)} %${S.pace === 'yli' ? ' + ylitys' : ''})`
+      : `energiansaannin alaraja (${f0(K.KCAL_FLOOR[S.sex])} kcal)`;
+  const limShort = lim => lim === 'rate' ? `${ratePct()} % painosta` : lim === 'alpert' ? 'rasvakatto' : 'energian alaraja';
+
+  /* ---------- säätimet ---------- */
+  function setFill(el) {
+    const mn = parseFloat(el.min), mx = parseFloat(el.max), v = parseFloat(el.value);
+    el.style.setProperty('--p', (mx > mn ? (v - mn) / (mx - mn) * 100 : 0) + '%');
+  }
+  function syncInputs() {
+    for (const [id, f] of Object.entries(FIELDS)) {
+      if (id === 'target' || id === 'floor') continue;
+      const el = $(id);
+      el.min = f.min; el.max = f.max; el.step = f.step;
+      if (id !== 'intake' || S.intake != null) el.value = S[f.k];
+      setFill(el);
+    }
+    $('target').step = 0.5;
+    $('sex-' + S.sex).checked = true;
+    $(PACE_IDS[S.pace]).checked = true;
+    $(S.train ? 'train-y' : 'train-n').checked = true;
+  }
+
+  for (const [id, f] of Object.entries(FIELDS)) {
+    if (id === 'floor') continue;
+    $(id).addEventListener('input', () => {
+      const v = parseFloat($(id).value);
+      if (!isFinite(v)) return;
+      S[f.k] = v;
+      if (id === 'intake' || id === 'days') { updateDiet(); save(); return; }   // ei vaikuta suunnitelmaan
+      stopPlay();
+      render();
+    });
+  }
+  document.querySelectorAll('.step').forEach(btn => {
+    let t1 = 0, t2 = 0;
+    const go = () => {
+      const id = btn.dataset.for, f = FIELDS[id], el = $(id);
+      if (el.disabled) return;
+      const v = clamp(parseFloat(el.value) + f.step * Number(btn.dataset.dir), parseFloat(el.min), parseFloat(el.max));
+      el.value = v;
+      el.dispatchEvent(new Event('input'));
+    };
+    const stop = () => { clearTimeout(t1); clearInterval(t2); };
+    btn.addEventListener('pointerdown', e => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      go();
+      t1 = setTimeout(() => { t2 = setInterval(go, 70); }, 380);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => btn.addEventListener(ev, stop));
+    btn.addEventListener('click', e => { if (e.detail === 0) go(); });
+  });
+  $('floor').addEventListener('input', () => {
+    const v = parseFloat($('floor').value);
+    if (!isFinite(v)) return;
+    if (S.sex === 'm') S.floorM = v; else S.floorF = v;
+    stopPlay();
+    render();
+  });
+  document.querySelectorAll('input[name=sex]').forEach(r => r.addEventListener('change', () => {
+    S.sex = r.value; stopPlay(); render(); animateSex();
+  }));
+  document.querySelectorAll('input[name=pace]').forEach(r => r.addEventListener('change', () => {
+    S.pace = r.value; stopPlay(); render();
+  }));
+  document.querySelectorAll('input[name=train]').forEach(r => r.addEventListener('change', () => {
+    S.train = r.value === 'y'; stopPlay(); render();
+  }));
+  function loadExample(scroll) {
+    S = { ...EXAMPLE }; stopPlay();
+    syncInputs(); render(); animateSex();
+    if (scroll) $('simulaattori').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+  }
+  $('reset').addEventListener('click', () => loadExample(false));
+  $('load-example').addEventListener('click', () => loadExample(true));
+  $('week').addEventListener('input', () => { stopPlay(); setPin(parseInt($('week').value, 10) || 0); });
+  $('play').addEventListener('click', togglePlay);
+  $('st-now').addEventListener('click', () => { stopPlay(); setPin(0); });
+  // dynaamisesti luodut painikkeet ohjeteksteissä
+  document.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('button[data-act]');
+    if (!b) return;
+    if (b.dataset.act === 'intake-auto') { S.intake = null; updateDiet(); save(); }
+    else if (b.dataset.act === 'set-target' && REACH != null) { S.target = REACH; stopPlay(); render(); }
+  });
+
+  /* ---------- laskenta ja päivitys ---------- */
+  function inputs() {
+    return { sex: S.sex, age: S.age, h: S.h, w: S.w, bf: S.bf / 100, pal: S.pal, corr: S.corr / 100, at: S.at / 100, pace: S.pace, target: TGT, train: S.train, bfMin: floorPct() / 100 };
+  }
+
+  /* Koko näkymän päivitys. Kutsutaan, kun suunnitelmaan vaikuttava syöte muuttuu,
+     joten valittu viikko palaa aina nykyhetkeen: kehokuva näyttää silloin kehon nyt. */
+  function render() {
+    pin = 0; hover = null;
+    const inp = inputs();
+    NOW = Model.now(inp);
+    MT = Model.minTarget(NOW.L, S.h, S.sex, floorPct() / 100);
+    const fEl = $('floor'), fr = FLOOR_RANGE[S.sex];
+    fEl.min = fr[0]; fEl.max = fr[1]; fEl.step = 0.5; fEl.value = floorPct();
+    setFill(fEl);
+    const tMin = Math.ceil(MT.value * 2 - 1e-9) / 2;
+    const tMax = Math.floor((S.w - 0.5) * 2 + 1e-9) / 2;
+    const tEl = $('target');
+    STOP = '';
+    P = null;
+    REACH = null;
+    if (tMin > tMax) STOP = 'bmi';
+    else if (S.bf / 100 <= K.BF_FLOOR[S.sex] + 1e-9) STOP = 'bf';
+    if (tMin <= tMax) {
+      // toive säilyy S.target-kentässä; laskentaan käytetään sallittua arvoa
+      TGT = S.target > tMax ? clamp(r05(S.w * 0.92), tMin, tMax) : clamp(r05(S.target), tMin, tMax);
+      tEl.min = tMin; tEl.max = tMax; tEl.value = TGT;
+      setFill(tEl);
+    }
+    tEl.disabled = STOP === 'bmi' || STOP === 'bf';
+    document.querySelectorAll('.step[data-for=target]').forEach(b => { b.disabled = tEl.disabled; });
+    if (!STOP) {
+      inp.target = TGT;
+      P = Model.plan(inp);
+      if (!P.weeks.length || !P.reached || P.weeks[0].d < 100) {
+        // kuinka pitkälle suunnitelma ulottuu, ennen kuin vaje kutistuu lähes nollaan
+        if (P.weeks.length && P.weeks[0].d >= 100) {
+          const k = P.weeks.findIndex(w => w.d < 100);
+          const r = Math.ceil((k >= 0 ? P.weeks[k].W : P.end.W) * 2 - 1e-9) / 2;
+          if (r >= tMin && r <= tMax && r > TGT) REACH = r;
+        }
+        P = null; STOP = 'energy';
+      }
+    }
+    T = P ? Math.ceil(P.total - 1e-9) : 0;
+
+    updateControls(tMin);
+    updateReport();
+    updateStage();
+    drawChart();
+    updateTable();
+    updateWeekUI();
+    updateDiet();
+    $('sim-state').innerHTML = isExample()
+      ? '<b>Esimerkkiarvot</b> · säädä omiksesi'
+      : '<b>Omat arvot</b> · tallentuvat vain tähän selaimeen';
+    save();
+  }
+
+  function updateControls(tMin) {
+    $('age-out').textContent = `${f0(S.age)} v`;
+    $('height-out').textContent = `${f0(S.h)} cm`;
+    $('weight-out').textContent = `${f1(S.w)} kg`;
+    $('bf-out').textContent = `${f1(S.bf)} %`;
+    $('pal-out').textContent = ACT[S.pal][0];
+    $('weight-note').textContent = `BMI ${f1(NOW.bmi)} · ${Model.bmiClass(NOW.bmi).label}`;
+    const ffmiHigh = NOW.ffmi > (S.sex === 'm' ? 30 : 25);
+    $('bf-note').innerHTML = `rasvaa <b>${f1(NOW.F)} kg</b> · rasvatonta ${f1(NOW.L)} kg` +
+      (ffmiHigh ? ` · <span class="warn-t">rasvaton massa (FFMI ${f1(NOW.ffmi)}) on poikkeuksellisen suuri – tarkista rasvaprosentti</span>` : '');
+    $('pal-note').textContent = `${ACT[S.pal][1]} · kerroin ${N3.format(K.PAL[S.pal])}`;
+    $('corr-out').textContent = `${k10(NOW.tdee)} kcal/vrk`;
+    $('corr-note').textContent = S.corr === 0
+      ? 'kaavan arvio, kun syöt kulutuksesi verran · jos tiedät ylläpitokalorisi, säädä tämä niihin'
+      : `kaavan arvio ${k10(NOW.tdeePred)} kcal/vrk · korjaus ${S.corr > 0 ? '+' : '−'}${f0(Math.abs(S.corr))} %`;
+    $('adapt-out').textContent = `${AT_LABELS[S.at] || ''} · ${f0(S.at)} %`;
+    if (S.at === 0) $('adapt-note').textContent = 'Ei mallinneta. Kulutus laskee silti kehon koon ja syömisen mukana.';
+    else if (P) {
+      const a0 = P.weeks[0].at, a1 = P.weeks[P.weeks.length - 1].at;
+      $('adapt-note').textContent = `Viikolla 1 ${sgn(a0)}, perillä ${sgn(a1)} kcal/vrk. Voimistuu, kun rasvavarasto pienenee.` +
+        (S.at === 100 ? ' Tämä on tutkimusten keskitaso.' : '');
+    } else $('adapt-note').textContent = 'Voimistuu, kun rasvavarasto pienenee.';
+    $('floor-out').textContent = `${f1(floorPct())} %`;
+    $('floor-note').textContent = S.sex === 'm'
+      ? 'Välttämätön rasva miehillä 2–5 %, urheilijat tyypillisesti 6–13 % (ACE). Kehonrakentajat käyvät kisoissa 3–5 %:ssa.'
+      : 'Välttämätön rasva naisilla 10–13 %, urheilijat tyypillisesti 14–20 % (ACE).';
+    ['age', 'height', 'weight', 'bf', 'pal', 'corr', 'adapt'].forEach(id => setFill($(id)));
+
+    const fatOK = MT.leanKeep < S.w - 0.25;   // onko rasvaa valitun alarajan yli
+    if (STOP !== 'bmi') {
+      $('target-out').textContent = `${f1(TGT)} kg`;
+      if (P) {
+        const e = P.end;
+        $('target-note').innerHTML = `perillä rasvaa <b>${f1(e.F / e.W * 100)} %</b> · rasvatonta ${f1(e.L)} kg · BMI ${f1(Model.bmi(TGT, S.h))}` +
+          `<br>alin sallittu ${f1(tMin)} kg (BMI 18,5) · ` +
+          (fatOK ? `ilman rasvattoman massan menetystä ≥ ${f1(MT.leanKeep)} kg` : 'rasvaa on jo valitulla alarajalla');
+      } else {
+        $('target-note').innerHTML = `alin sallittu ${f1(tMin)} kg (BMI 18,5)`;
+      }
+    } else {
+      $('target-out').textContent = '–';
+      $('target-note').textContent = '';
+    }
+    const p = K.PACE[S.pace];
+    $('pace-note').textContent = S.pace === 'yli'
+      ? 'Vaje ylittää rasvavaraston katon 25 %, ja viikkotahti voi olla 1,5 % painosta. Ylitys katetaan mallissa rasvattomasta massasta.'
+      : S.pace === 'katto'
+        ? 'Teoreettinen yläraja: koko rasvavaraston katto ja 1 % painosta viikossa.'
+        : `Vaje on enintään ${Math.round(p.s * 100)} % rasvavaraston katosta ja ${ratePct()} % painosta viikossa.`;
+    const r5 = v => Math.round(v / 5) * 5;
+    $('train-note').innerHTML = S.train
+      ? `Malli olettaa, että rasvaton massa säilyy, kun vaje pysyy katon alla ja rasvaa on yli alarajan. Se edellyttää proteiinia noin <b>${f0(r5(2.3 * NOW.L))}–${f0(r5(3.1 * NOW.L))} g/vrk</b> eli 2,3–3,1 g rasvattoman massan kiloa kohden <a class="cite" href="#r14">[14]</a>.`
+      : 'Ilman vastatoimia osa pudotuksesta on rasvatonta massaa Forbesin teorian mukaan.';
+
+    // rasvattoman massan menetys (ei estä suunnitelmaa)
+    const ln = $('leannote');
+    if (P && P.leanLost > 0.05) {
+      const why = [];
+      const big = (S.w - TGT) / S.w > 0.2;
+      if (P.reqLean > 0.05) why.push(!fatOK
+        ? `rasvaa on jo valitun alarajan (${pctTxt(floorPct())} %) verran tai vähemmän, joten malli ei polta rasvaa lainkaan`
+        : `tavoite on alempana kuin pelkkä rasvanpudotus sallii (${f1(MT.leanKeep)} kg, kun rasvaa jää ${pctTxt(floorPct())} %)` +
+          (big ? '' : '. Kamppailulajeissa osa tästä tehdään usein nesteenpoistona juuri ennen punnitusta'));
+      if (P.weeks.some(w => w.over)) why.push('vaje ylittää rasvavaraston katon');
+      if (!S.train) why.push('ilman voimaharjoittelua ja runsasta proteiinia osa pudotuksesta on Forbesin teorian mukaan rasvatonta massaa');
+      $('lean-text').innerHTML = `Mallin mukaan menetät rasvatonta massaa noin <b>${f1(P.leanLost)} kg</b> (${f0(P.leanLost / P.L0 * 100)} % rasvattomasta massasta): vettä, glykogeenia ja lihasta. Syy: ${why.join('; ')}.` +
+        (big ? ' Suuressa painonpudotuksessa osa rasvattomasta massasta, kuten painoa kantava lihas ja kudosneste, vähenee luonnostaankin.' : '');
+      ln.hidden = false;
+    } else if (P && S.train && (S.w - TGT) / S.w > 0.3) {
+      $('lean-text').innerHTML = 'Malli olettaa, ettei rasvatonta massaa menetetä. Suuressa painonpudotuksessa osa siitä vähenee käytännössä aina. Valitse <b>Ei</b> voimaharjoittelukohdassa nähdäksesi Forbesin teorian mukaisen arvion.';
+      ln.hidden = false;
+    } else ln.hidden = true;
+
+    // varoitus: ennuste alittaa urheilijoiden tyypillisen rasvaprosentin
+    const bw = $('bfwarn');
+    if (P && P.end.F / P.end.W < K.BF_ATHLETE[S.sex] - 1e-6) {
+      $('bfwarn-text').innerHTML = `Perillä rasvaa on ennusteen mukaan <b>${f1(P.end.F / P.end.W * 100)} %</b>, eli alle urheilijoiden tyypillisen vaihteluvälin (${S.sex === 'm' ? 'miehillä 6–13 %' : 'naisilla 14–20 %'}). ` +
+        (S.sex === 'm'
+          ? 'Näin matala rasva on lyhytaikainen kisakunto. Tapaustutkimuksessa kehonrakentajan testosteroni laski noin neljännekseen ja syke 27 lyöntiin minuutissa 4,5 %:n rasvoissa. '
+          : 'Näin matala rasva on lyhytaikainen kisakunto, ja pitkään jatkuva energiavaje voi häiritä hormonitoimintaa ja kuukautiskiertoa. ') +
+        'Pidä kisakunto lyhyenä ja suunnittele palautuminen etukäteen. ' +
+        'Jos syöminen tai keho alkaa hallita ajatuksia, tukea saa Syömishäiriöliitosta: <a href="https://syomishairioliitto.fi" target="_blank" rel="noopener">syomishairioliitto.fi</a>.';
+      bw.hidden = false;
+    } else bw.hidden = true;
+
+    let msg = '';
+    const kf = f0(K.KCAL_FLOOR[S.sex]);
+    if (STOP === 'bmi') msg = 'Painoindeksisi on alle 18,5. Simulaattori ei laske laihdutussuunnitelmaa alipainon puolelle.';
+    else if (STOP === 'bf') msg = `Rasvaprosenttisi on jo simulaattorin ehdottomalla alarajalla (${pctTxt(K.BF_FLOOR[S.sex] * 100)} %). Simulaattori ei laske laihdutussuunnitelmaa tästä alaspäin.`;
+    else if (STOP === 'energy') msg = REACH != null
+      ? `Kulutus pienenee painon mukana ja lähestyy energiansaannin alarajaa (${kf} kcal/vrk). Siksi vaje kutistuu lähes nollaan noin ${f1(REACH)} kilon kohdalla, eikä ${f1(TGT)} kilon tavoitetta saavuteta. ` +
+        `<button type="button" class="linkbtn" data-act="set-target">Aseta tavoitteeksi ${f1(REACH)} kg</button> Liikunta kasvattaa kulutusta, joten tarkista myös aktiivisuustaso.`
+      : `Kulutusarviosi on niin lähellä energiansaannin alarajaa (${kf} kcal/vrk), ettei näillä arvoilla synny järkevää vajetta. Liikunta kasvattaa kulutusta, joten tarkista myös aktiivisuustaso.`;
+    $('stopnote').hidden = !msg;
+    $('stop-text').innerHTML = msg;
+    $('stop-help').hidden = STOP === 'energy';
+  }
+
+  function updateReport() {
+    $('cap-v').textContent = k10(NOW.emax);
+    $('cap-sub').textContent = `≈ ${f0(NOW.emaxFatG)} g rasvaa/vrk · ${f2(NOW.emaxWeekKg)} kg/vk`;
+    $('cap-foot').innerHTML = `69,3 kcal × ${f1(NOW.F)} kg rasvaa · <a href="#r2">Alpert 2005</a>`;
+    const chip = $('next-chip');
+    if (P) {
+      const w0 = P.weeks[0];
+      $('next-v').textContent = k10(w0.d);
+      $('next-u').textContent = 'kcal/vrk vaje';
+      $('next-sub').innerHTML = `Syö noin <b>${k10(w0.intake)}</b> kcal/vrk · −${f2(w0.weekRate)} kg/vk` +
+        (w0.weekL > 0.005 ? `<br><span class="sub-2">josta rasvaa ${f2(w0.weekF)} ja rasvatonta ${f2(w0.weekL)} kg</span>` : '') +
+        `<br><span class="sub-2">Kulutus dieetillä ≈ ${k10(w0.tdee)} kcal/vrk, ylläpidolla ${k10(NOW.tdee)}</span>`;
+      chip.hidden = false;
+      $('next-chip-t').textContent = 'Rajaa: ' + limText(w0.limiter);
+      const days = P.total * 7;
+      $('time-v').textContent = f0(Math.ceil(P.total - 1e-9));
+      $('time-u').textContent = 'viikkoa';
+      const d = new Date(Date.now() + days * 864e5);
+      const wk = Math.abs(P.total - Math.round(P.total)) < 0.05 ? f0(P.total) : f1(P.total);
+      $('time-sub').textContent = `Perillä noin ${d.toLocaleDateString('fi-FI')} · ${wk} vk (n. ${f0(Math.max(1, Math.round(days / 30.44)))} kk)`;
+      const loss = S.w - TGT;
+      const X = Math.min(3, loss);
+      const t3 = P.total - Model.timeAtWeight(P, TGT + X);
+      // hyvin pitkä suunnitelma syntyy yleensä, kun energiansaannin alaraja rajaa vajetta
+      const floorWeeks = P.weeks.filter(w => w.limiter === 'floor').length;
+      $('time-foot').innerHTML = (loss > 3
+        ? `Viimeiset 3 kg vievät ${f1(t3)} vk (${f0(t3 / P.total * 100)} % ajasta)`
+        : `Koko matka on ${f1(loss)} kg`) +
+        (P.leanLost > 0.05 ? `<br><span class="warn-t">Rasvatonta massaa menetetään ${f1(P.leanLost)} kg</span>` : '') +
+        (P.total > 104 && floorWeeks > P.weeks.length / 2
+          ? `<br><span class="warn-t">Yli kahden vuoden matka, koska kulutus on lähellä energiansaannin alarajaa. Liikunta nopeuttaa.</span>` : '');
+    } else {
+      $('next-v').textContent = '–';
+      $('next-u').textContent = '';
+      $('next-sub').textContent = 'Ei suunnitelmaa näillä arvoilla.';
+      chip.hidden = true;
+      $('time-v').textContent = '–';
+      $('time-u').textContent = '';
+      $('time-sub').textContent = '';
+      $('time-foot').textContent = '';
+    }
+    $('bc-w0').textContent = `${f1(S.w)} kg`;
+    $('bc-b0').textContent = f1(NOW.bmi);
+    $('bc-c0').innerHTML = `<span class="tag">${Model.bmiClass(NOW.bmi).label}</span>`;
+    $('bc-f0').textContent = `${f1(S.bf)} %`;
+    $('bc-l0').textContent = `${f1(NOW.L)} kg`;
+    if (P) {
+      const e = P.end, bt = Model.bmi(TGT, S.h);
+      $('bc-w1').textContent = `${f1(TGT)} kg`;
+      $('bc-b1').textContent = f1(bt);
+      $('bc-c1').innerHTML = `<span class="tag">${Model.bmiClass(bt).label}</span>`;
+      $('bc-f1').textContent = `${f1(e.F / e.W * 100)} %`;
+      $('bc-l1').textContent = `${f1(e.L)} kg`;
+    } else {
+      ['bc-w1', 'bc-b1', 'bc-c1', 'bc-f1', 'bc-l1'].forEach(id => { $(id).textContent = '–'; });
+    }
+    $('bc-foot').textContent = `FFMI ${f1(NOW.ffmi)} · kulutus ≈ ${k10(NOW.tdee)} kcal/vrk (lepo ${k10(NOW.bmr)})`;
+  }
+
+  /* ---------- kehokuva ---------- */
+  /* Kehokuva näyttää aina nykyhetken, ellei käyttäjä ole itse valinnut viikkoa (pin). */
+  function stageAt() {
+    if (!P || pin === 0) return { W: S.w, F: NOW.F, L: NOW.L, label: 'Nyt', future: false };
+    const a = Model.at(P, pin);
+    const label = pin >= T ? `Perillä · viikko ${f0(T)}` : `Viikko ${f0(pin)} / ${f0(T)}`;
+    return { W: a.W, F: a.F, L: a.L, label, future: true };
+  }
+  /* Mobiilin pikaluvut kehokuvan vieressä seuraavat valittua viikkoa. */
+  function updateMini() {
+    const cap = $('sm-cap'), def = $('sm-def'), tim = $('sm-time');
+    if (!P) { cap.textContent = `${k10(NOW.emax)} kcal/vrk`; def.textContent = '–'; tim.textContent = '–'; return; }
+    if (pin >= T) {
+      cap.textContent = `${k10(K.ALPERT * P.end.F)} kcal/vrk`;
+      def.textContent = '–';
+      tim.textContent = 'perillä';
+      return;
+    }
+    const w = P.weeks[pin];
+    cap.textContent = `${k10(w.emax)} kcal/vrk`;
+    def.textContent = `${k10(w.d)} kcal/vrk`;
+    tim.textContent = pin === 0 ? `${f0(T)} vk` : `${f0(T - pin)} vk jäljellä`;
+  }
+  function updateStage() {
+    const st = stageAt();
+    $('st-label').textContent = st.label;
+    $('st-label').classList.toggle('pinned', st.future);
+    $('st-now').hidden = !st.future;
+    updateMini();
+    $('st-w').textContent = f1(st.W);
+    $('st-sub').textContent = `rasvaa ${f1(st.F)} kg · ${f1(st.F / st.W * 100)} %`;
+    drawFig(st);
+  }
+  function drawFig(st) {
+    if (!st) st = stageAt();
+    const m2 = (S.h / 100) ** 2;
+    const o = { sexMix: MIX, h: S.h, ffmi: st.L / m2, fmi: st.F / m2 };
+    const sh = Body.shapes(o);
+    $('p-fat').setAttribute('d', sh.body);
+    $('p-lean').setAttribute('d', sh.bodyLean);
+    $('p-arm').setAttribute('d', sh.arm);
+    $('p-armlean').setAttribute('d', sh.armLean);
+    $('p-ghost').setAttribute('d', P ? Body.shapes({ sexMix: MIX, h: S.h, ffmi: P.end.L / m2, fmi: P.end.F / m2 }).body : '');
+    drawHeightMark();
+  }
+  function drawFigGrid() {
+    const r = $('fig').getBoundingClientRect();
+    const sc = Math.min(r.width / 94, r.height / 232) || 2.2;
+    FS = Math.min(10 / sc, 9);
+    let g = '';
+    for (let x = -30; x <= 40; x += 10) g += `<line class="gl" x1="${x}" x2="${x}" y1="0" y2="-212"/>`;
+    for (let y = 10; y <= 210; y += 10) g += `<line class="gl" x1="-40" x2="44" y1="${-y}" y2="${-y}"/>`;
+    g += '<line class="ruler" x1="-40" x2="-40" y1="0" y2="-212"/>';
+    for (let y = 0; y <= 210; y += 10) {
+      const L = y % 50 === 0 ? 3.4 : 1.7;
+      g += `<line class="ruler" x1="-40" x2="${-40 + L}" y1="${-y}" y2="${-y}"/>`;
+    }
+    for (const y of [50, 100, 150, 200]) g += `<text class="rl" x="-42" y="${(-y + FS * 0.35).toFixed(2)}" text-anchor="end" font-size="${FS.toFixed(2)}">${y}</text>`;
+    g += '<line class="gl-strong" x1="-44" x2="44" y1="0" y2="0"/>';
+    $('fig-grid').innerHTML = g;
+    drawHeightMark();
+  }
+  function drawHeightMark() {
+    const h = S.h;
+    $('fig-h').innerHTML = `<line class="hline" x1="-40" x2="2" y1="${-h}" y2="${-h}"/>` +
+      `<text class="hl" x="-38.5" y="${(-h - FS * 0.5).toFixed(2)}" font-size="${FS.toFixed(2)}">${h} cm</text>`;
+  }
+  function animateSex() {
+    const goal = S.sex === 'f' ? 1 : 0;
+    cancelAnimationFrame(mixRaf);
+    if (reduced || MIX === goal) { MIX = goal; drawFig(); return; }
+    const from = MIX, t0 = performance.now(), dur = 480;
+    const step = now => {
+      const u = Math.min(1, (now - t0) / dur);
+      MIX = from + (goal - from) * (u < .5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2);
+      drawFig();
+      if (u < 1) mixRaf = requestAnimationFrame(step);
+    };
+    mixRaf = requestAnimationFrame(step);
+  }
+  function scanSweep() {
+    if (reduced) return;
+    const el = $('scan'), t0 = performance.now(), dur = 1600;
+    el.setAttribute('opacity', '0.55');
+    const step = now => {
+      const u = Math.min(1, (now - t0) / dur);
+      const e = 1 - Math.pow(1 - u, 2.2);
+      el.setAttribute('y', (-224 + e * 224).toFixed(2));
+      el.setAttribute('opacity', (0.55 * (1 - Math.max(0, (u - 0.8) / 0.2))).toFixed(3));
+      if (u < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  /* ---------- viikkokäyrä ---------- */
+  function barPath(x0, x1, yTop, yBase, roundTop) {
+    const r = roundTop ? Math.max(0, Math.min(4, (x1 - x0) / 2, yBase - yTop)) : 0;
+    return `M${x0.toFixed(1)} ${yBase.toFixed(1)}V${(yTop + r).toFixed(1)}Q${x0.toFixed(1)} ${yTop.toFixed(1)} ${(x0 + r).toFixed(1)} ${yTop.toFixed(1)}` +
+      `H${(x1 - r).toFixed(1)}Q${x1.toFixed(1)} ${yTop.toFixed(1)} ${x1.toFixed(1)} ${(yTop + r).toFixed(1)}V${yBase.toFixed(1)}Z`;
+  }
+  function drawChart() {
+    const host = $('chart');
+    CH = null;
+    if (!P) { host.innerHTML = '<p class="fine" style="padding:24px 0">Ei käyrää näillä arvoilla.</p>'; return; }
+    const W = Math.max(280, Math.round(host.clientWidth || 640));
+    const narrow = W < 560;
+    const H1 = narrow ? 170 : 210, H2 = narrow ? 64 : 80, H3 = narrow ? 100 : 120;
+    const m = { l: 42, r: 12, t: 18, g: 32, band: 20, b: 26 };
+    const iw = W - m.l - m.r;
+    const x = t => m.l + (t / T) * iw;
+    const lo = Math.floor(TGT - 1), hi = Math.ceil(S.w + 0.5), yr = hi - lo;
+    const ys = yr <= 8 ? 1 : yr <= 20 ? 2 : yr <= 50 ? 5 : 10;
+    const y = v => m.t + (1 - (v - lo) / yr) * H1;
+    const by0 = m.t + H1 + m.g + H2;
+    const rMax = Math.max(0.25, Math.ceil(Math.max(...P.weeks.map(w => w.weekRate)) * 4) / 4);
+    const yb = r => by0 - (r / rMax) * H2;
+    // energiapaneeli: kulutus, kulutus ilman säästöliekkiä ja syöminen (kcal/vrk); selite rivitetään leveyden mukaan
+    const hasAT = P.atStrength > 0;
+    const legItems = [['tdee', 'kulutus']].concat(hasAT ? [['noat', 'ilman säästöliekkiä'], ['at', 'säästöliekki']] : [], [['int', 'syöminen'], ['def', 'vaje']]);
+    const legRows = [[]];
+    let rowW = 0;
+    legItems.forEach(([k, t]) => {
+      const wi = 24 + t.length * 6.3 + 14;
+      if (rowW + wi > iw && legRows[legRows.length - 1].length) { legRows.push([]); rowW = 0; }
+      legRows[legRows.length - 1].push({ k, t, x: m.l + rowW });
+      rowW += wi;
+    });
+    const legY0 = by0 + 30;
+    const eTop = legY0 + (legRows.length - 1) * 16 + 14;
+    const eBot = eTop + H3;
+    const bandY = eBot + 12;
+    const H = bandY + m.band + m.b;
+    const eVals = P.weeks.flatMap(w => [w.intake, w.tdee, w.tdeeNoAT]);
+    let eLo = Math.min(...eVals), eHi = Math.max(...eVals);
+    const eSpan = Math.max(1, eHi - eLo);
+    const es = eSpan <= 500 ? 100 : eSpan <= 1200 ? 250 : eSpan <= 2600 ? 500 : 1000;
+    eLo = Math.floor((eLo - es * 0.25) / es) * es; eHi = Math.ceil((eHi + es * 0.25) / es) * es;
+    const ye = v => eTop + (1 - (v - eLo) / (eHi - eLo)) * H3;
+    let s = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="Viikkokäyrä: paino, viikoittainen pudotus sekä kulutus ja syöminen">`;
+    s += '<defs><pattern id="hatch" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)"><line class="hatch-l" x1="0" y1="0" x2="0" y2="5"/></pattern></defs>';
+    for (let v = Math.ceil(lo / ys) * ys; v <= hi; v += ys) {
+      s += `<line class="gridl" x1="${m.l}" x2="${W - m.r}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}"/>`;
+      s += `<text class="ax" x="${m.l - 7}" y="${(y(v) + 3.5).toFixed(1)}" text-anchor="end">${v}</text>`;
+    }
+    s += `<text class="ax-t" x="${m.l - 7}" y="${m.t - 6}" text-anchor="end">kg</text>`;
+    const loss = S.w - TGT, X = Math.min(3, loss);
+    const t3 = Model.timeAtWeight(P, TGT + X);
+    const zx = x(t3), zw = Math.max(0, x(P.total) - zx);
+    s += `<rect class="zone" x="${zx.toFixed(1)}" y="${m.t}" width="${zw.toFixed(1)}" height="${H1}"/>`;
+    const zl = `viimeiset ${f0(X)} kg · ${f1(P.total - t3)} vk`;
+    const zlw = zl.length * 6.3;
+    s += zx + 6 + zlw < W - m.r
+      ? `<text class="zlab" x="${(zx + 6).toFixed(1)}" y="${m.t + 13}">${zl}</text>`
+      : `<text class="zlab" x="${(x(P.total) - 6).toFixed(1)}" y="${m.t + 13}" text-anchor="end">${zl}</text>`;
+    s += `<line class="tline" x1="${m.l}" x2="${W - m.r}" y1="${y(TGT).toFixed(1)}" y2="${y(TGT).toFixed(1)}"/>`;
+    s += `<text class="tlab" x="${m.l + 6}" y="${(y(TGT) + 15).toFixed(1)}">tavoite ${f1(TGT)} kg</text>`;
+    const pts = P.weeks.map(w => [x(w.t0), y(w.W)]).concat([[x(P.total), y(P.end.W)]]);
+    const line = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('');
+    s += `<path class="warea" d="${line}L${pts[pts.length - 1][0].toFixed(1)} ${(m.t + H1).toFixed(1)}L${pts[0][0].toFixed(1)} ${(m.t + H1).toFixed(1)}Z"/>`;
+    s += `<path class="wline" d="${line}"/>`;
+    for (let r = 0.5; r <= rMax + 1e-9; r += 0.5) {
+      s += `<line class="gridl" x1="${m.l}" x2="${W - m.r}" y1="${yb(r).toFixed(1)}" y2="${yb(r).toFixed(1)}"/>`;
+      s += `<text class="ax" x="${m.l - 7}" y="${(yb(r) + 3.5).toFixed(1)}" text-anchor="end">${f1(r)}</text>`;
+    }
+    s += `<text class="ax-t" x="${m.l - 7}" y="${(by0 - H2 - 8).toFixed(1)}" text-anchor="end">kg/vk</text>`;
+    const slot = iw / T;
+    P.weeks.forEach(w => {
+      const cx = x(w.t0 + w.frac / 2);
+      const bw = Math.max(1, Math.min(24, w.frac * slot - 2));
+      const x0 = cx - bw / 2, x1 = cx + bw / 2;
+      const yF = yb(w.weekF);
+      const hasL = w.weekL > 0.004;
+      s += `<path class="b-fat" d="${barPath(x0, x1, yF, by0, !hasL)}"/>`;
+      if (hasL) {
+        const yL = yb(w.weekF + w.weekL);
+        const gap = Math.min(2, (yF - yL) / 2);
+        s += `<path class="b-lean" d="${barPath(x0, x1, yL, yF - gap, true)}"/>`;
+      }
+    });
+    s += `<line class="base" x1="${m.l}" x2="${W - m.r}" y1="${by0}" y2="${by0}"/>`;
+    // energiapaneeli
+    legRows.forEach((row, ri) => row.forEach(it => {
+      const ly = legY0 + ri * 16, kx = it.x;
+      if (it.k === 'tdee' || it.k === 'noat' || it.k === 'int') s += `<line class="e-${it.k}" x1="${kx}" x2="${kx + 16}" y1="${ly - 4}" y2="${ly - 4}"/>`;
+      else if (it.k === 'at') s += `<rect class="e-at-sw" x="${kx + 1}" y="${ly - 10}" width="14" height="11" rx="2" fill="url(#hatch)"/>`;
+      else s += `<rect class="e-def" x="${kx + 1}" y="${ly - 10}" width="14" height="11" rx="2"/>`;
+      s += `<text class="ax" x="${kx + 22}" y="${ly}">${it.t}</text>`;
+    }));
+    s += `<text class="ax-t" x="${m.l - 7}" y="${legY0}" text-anchor="end">kcal</text>`;
+    for (let v = eLo; v <= eHi + 1e-9; v += es) {
+      s += `<line class="gridl" x1="${m.l}" x2="${W - m.r}" y1="${ye(v).toFixed(1)}" y2="${ye(v).toFixed(1)}"/>`;
+      s += `<text class="ax" x="${m.l - 7}" y="${(ye(v) + 3.5).toFixed(1)}" text-anchor="end">${f0(v)}</text>`;
+    }
+    const lastW = P.weeks[P.weeks.length - 1];
+    const ePts = key => P.weeks.map(w => [x(w.t0), ye(w[key])]).concat([[x(P.total), ye(lastW[key])]]);
+    const pathOf = pts => pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('');
+    const backOf = pts => pts.slice().reverse().map(p => 'L' + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('');
+    const pT = ePts('tdee'), pI = ePts('intake'), pN = ePts('tdeeNoAT');
+    s += `<path class="e-def" d="${pathOf(pT)}${backOf(pI)}Z"/>`;
+    if (hasAT) s += `<path d="${pathOf(pN)}${backOf(pT)}Z" fill="url(#hatch)"/>`;
+    if (hasAT) s += `<path class="e-noat" d="${pathOf(pN)}"/>`;
+    s += `<path class="e-tdee" d="${pathOf(pT)}"/>`;
+    s += `<path class="e-int" d="${pathOf(pI)}"/>`;
+    s += `<line class="base" x1="${m.l}" x2="${W - m.r}" y1="${eBot.toFixed(1)}" y2="${eBot.toFixed(1)}"/>`;
+    // suorat nimiöt viivojen loppuun tärkeysjärjestyksessä; päällekkäin osuva nimiö jätetään pois (selite kertoo sen)
+    const placed = [];
+    [['kulutus', pT], ['syöminen', pI]].concat(hasAT ? [['ilman säästöliekkiä', pN]] : []).forEach(([t, pts]) => {
+      const ly = pts[pts.length - 1][1] - 5;
+      if (ly < eTop + 9 || placed.some(py => Math.abs(py - ly) < 12)) return;
+      s += `<text class="elab" x="${(x(P.total) - 4).toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="end">${t}</text>`;
+      placed.push(ly);
+    });
+    // rajoittajavyö: mikä raja määrää kunkin jakson vajeen
+    const segs = [];
+    P.weeks.forEach(w => {
+      const last = segs[segs.length - 1];
+      if (last && last.lim === w.limiter) last.t1 = w.t0 + w.frac;
+      else segs.push({ lim: w.limiter, t0: w.t0, t1: w.t0 + w.frac });
+    });
+    segs.forEach((g, k) => {
+      const gx0 = x(g.t0) + (k ? 1 : 0), gx1 = x(g.t1) - (k < segs.length - 1 ? 1 : 0);
+      s += `<rect class="band band-${k % 2}" x="${gx0.toFixed(1)}" y="${bandY}" width="${Math.max(0, gx1 - gx0).toFixed(1)}" height="${m.band}" rx="3"/>`;
+      const lab = limShort(g.lim);
+      if (gx1 - gx0 > lab.length * 6.2 + 10) s += `<text class="band-t" x="${((gx0 + gx1) / 2).toFixed(1)}" y="${bandY + 14}" text-anchor="middle">${lab}</text>`;
+    });
+    const xs = T <= 12 ? 2 : T <= 30 ? 5 : T <= 80 ? 10 : 20;
+    const tickY = bandY + m.band + 16;
+    for (let t = 0; t <= T; t += xs) s += `<text class="ax" x="${x(t).toFixed(1)}" y="${tickY}" text-anchor="middle">${t}</text>`;
+    s += `<text class="ax-t" x="${m.l - 7}" y="${tickY}" text-anchor="end">vk</text>`;
+    s += `<text class="ax-t" x="${m.l - 7}" y="${bandY + 14}" text-anchor="end">rajaa</text>`;
+    s += '<path class="cross" id="ch-x" d=""/>';
+    s += '<circle class="dot" id="ch-dot" cx="0" cy="0" r="4.5"/>';
+    s += '<circle class="dot" id="ch-de1" cx="0" cy="0" r="4"/>';
+    s += '<circle class="dot dot-int" id="ch-de2" cx="0" cy="0" r="4"/>';
+    s += `<rect x="${m.l - 6}" y="0" width="${iw + 12}" height="${bandY + m.band}" fill="transparent"/>`;
+    s += '</svg>';
+    host.innerHTML = s;
+    CH = { x, y, ye, crossD: cx => `M${cx} ${m.t}V${by0}M${cx} ${eTop.toFixed(1)}V${eBot.toFixed(1)}` };
+    const svg = host.firstChild;
+    /* Osoitin käyrän päällä = esikatselu (ei muuta kehokuvaa). Klikkaus tai veto valitsee viikon.
+       Kosketuksessa napautus tai vaakasuora veto valitsee viikon; sivun vieritys ei. */
+    const tAt = ev => {
+      const r = svg.getBoundingClientRect();
+      if (!r.width) return null;
+      const px = (ev.clientX - r.left) * (W / r.width);
+      return clamp(Math.round((px - m.l) / iw * T), 0, T);
+    };
+    let drag = null;
+    svg.addEventListener('pointerdown', ev => {
+      if (ev.pointerType === 'mouse' && ev.button !== 0) return;
+      drag = { id: ev.pointerId, x0: ev.clientX, y0: ev.clientY, on: ev.pointerType !== 'touch' };
+      if (drag.on) {
+        stopPlay(); hover = null; setPin(tAt(ev));
+        try { svg.setPointerCapture(ev.pointerId); } catch (e) { /* ei kaappausta */ }
+      }
+    });
+    svg.addEventListener('pointermove', ev => {
+      const t = tAt(ev);
+      if (t == null) return;
+      if (drag && drag.id === ev.pointerId) {
+        const dx = Math.abs(ev.clientX - drag.x0), dy = Math.abs(ev.clientY - drag.y0);
+        if (!drag.on && dx > 8 && dx > dy) { drag.on = true; stopPlay(); hover = null; }
+        if (drag.on && t !== pin) setPin(t);
+        return;
+      }
+      if (ev.pointerType !== 'touch' && !playing && t !== hover) setHover(t);
+    });
+    svg.addEventListener('pointerup', ev => {
+      if (!drag || drag.id !== ev.pointerId) return;
+      if (!drag.on) { stopPlay(); setPin(tAt(ev)); }   // napautus
+      drag = null;
+    });
+    svg.addEventListener('pointercancel', ev => { if (drag && drag.id === ev.pointerId) drag = null; });
+    svg.addEventListener('pointerleave', ev => { if (ev.pointerType !== 'touch' && !drag && hover != null) setHover(null); });
+    updateCross();
+  }
+  function updateCross() {
+    if (!CH || !P) return;
+    const t = Math.min(shown(), P.total);
+    const a = Model.at(P, t);
+    const cx = CH.x(t).toFixed(1);
+    const lx = $('ch-x'), dot = $('ch-dot');
+    if (lx) { lx.setAttribute('d', CH.crossD(cx)); lx.classList.toggle('preview', hover != null); }
+    if (dot) { dot.setAttribute('cx', cx); dot.setAttribute('cy', CH.y(a.W).toFixed(1)); }
+    // energiapaneelin pisteet: viikon arvo (viivat kulkevat viikkojen alkukohtien kautta)
+    const w = P.weeks[Math.min(Math.floor(t + 1e-9), P.weeks.length - 1)];
+    const d1 = $('ch-de1'), d2 = $('ch-de2');
+    if (d1) { d1.setAttribute('cx', cx); d1.setAttribute('cy', CH.ye(w.tdee).toFixed(1)); }
+    if (d2) { d2.setAttribute('cx', cx); d2.setAttribute('cy', CH.ye(w.intake).toFixed(1)); }
+  }
+
+  function setPin(w) {
+    pin = clamp(w == null ? 0 : w, 0, T);
+    updateWeekUI();
+    updateStage();
+    updateCross();
+  }
+  function setHover(w) {
+    hover = w == null ? null : clamp(w, 0, T);
+    updateReadout();
+    updateCross();
+  }
+  function updateWeekUI() {
+    const el = $('week');
+    el.max = Math.max(1, T); el.value = pin; el.disabled = !P;
+    $('play').disabled = !P;
+    setFill(el);
+    $('week-out').textContent = P ? `${f0(pin)} / ${f0(T)} vk` : '–';
+    updateReadout();
+  }
+  function updateReadout() {
+    const week = shown();
+    const ro = $('readout');
+    if (!P) { ro.textContent = ''; }
+    else if (week >= T) {
+      const e = P.end;
+      ro.innerHTML = `<b>Perillä viikolla ${f1(P.total)}</b>: ${f1(e.W)} kg · rasvaa ${f1(e.F)} kg (${f1(e.F / e.W * 100)} %) · rasvatonta ${f1(e.L)} kg. ` +
+        (P.leanLost > 0.05
+          ? `Pudotuksesta ${f1(P.F0 - e.F)} kg on rasvaa ja ${f1(P.leanLost)} kg rasvatonta massaa.`
+          : `Pudotus ${f1(S.w - e.W)} kg on kokonaan rasvaa, ja rasvaton massa säilyy mallin oletuksen mukaisesti.`);
+    } else {
+      const w = P.weeks[week];
+      ro.innerHTML = `<b>${week === 0 ? 'Nyt' : f0(week) + ' viikon kohdalla'}</b>: ${f1(w.W)} kg · rasvaa ${f1(w.F)} kg (${f1(w.F / w.W * 100)} %) · katto ${k10(w.emax)} kcal/vrk. ` +
+        `Seuraavalla viikolla kulutus noin ${k10(w.tdee)} kcal/vrk` + (P.atStrength > 0 ? `, josta säästöliekki ${sgn(w.at)}` : '') +
+        `, vaje ${k10(w.d)}, syöminen noin ${k10(w.intake)} kcal/vrk ja pudotus ${f2(w.weekRate)} kg/vk` +
+        (w.weekL > 0.005 ? ` (rasvaa ${f2(w.weekF)}, rasvatonta ${f2(w.weekL)})` : '') + `. Rajaa: ${limText(w.limiter)}.`;
+    }
+    document.querySelectorAll('#tbody tr').forEach((tr, i) => tr.classList.toggle('sel', i === week));
+  }
+  function updateTable() {
+    const tb = $('tbody');
+    tb.textContent = '';
+    if (!P) return;
+    const frag = document.createDocumentFragment();
+    P.weeks.forEach((w, i) => {
+      const tr = document.createElement('tr');
+      [f0(i + 1), f1(w.W) + ' kg', f1(w.F) + ' kg', f1(w.F / w.W * 100) + ' %', f1(w.L) + ' kg', k10(w.emax), k10(w.tdee),
+       Math.abs(w.at) >= 5 ? sgn(w.at) : '–', k10(w.d), k10(w.intake),
+       '−' + f2(w.weekRate) + ' kg', w.weekL > 0.005 ? '−' + f2(w.weekL) + ' kg' : '–', limShort(w.limiter)]
+        .forEach(c => { const td = document.createElement('td'); td.textContent = c; tr.appendChild(td); });
+      frag.appendChild(tr);
+    });
+    tb.appendChild(frag);
+  }
+  function setPlayUI(on) {
+    $('play-t').textContent = on ? 'Pysäytä' : 'Toista';
+    $('play').setAttribute('aria-label', on ? 'Pysäytä toisto' : 'Toista koko matka');
+    $('play-icon').setAttribute('d', on ? 'M2 1h3v10H2zM7 1h3v10H7z' : 'M2 1l9 5-9 5z');
+  }
+  function stopPlay() { if (playing) { clearInterval(playing); playing = 0; setPlayUI(false); } }
+  function togglePlay() {
+    if (playing) { stopPlay(); return; }
+    if (!P) return;
+    hover = null;
+    if (pin >= T) setPin(0);
+    setPlayUI(true);
+    playing = setInterval(() => {
+      if (pin >= T) { stopPlay(); return; }
+      setPin(pin + 1);
+    }, reduced ? 260 : 140);
+  }
+
+  /* ---------- oma syöminen ---------- */
+  function updateDiet() {
+    const el = $('intake'), dEl = $('days');
+    // alipainoiselle tai rasvan ehdottomalla alarajalla olevalle ei näytetä laihdutuslaskelmaa
+    const off = STOP === 'bmi' || STOP === 'bf';
+    el.disabled = off; dEl.disabled = off;
+    document.querySelectorAll('.step[data-for=intake], .step[data-for=days]').forEach(b => { b.disabled = off; });
+    $('splitbar').hidden = off;
+    if (off) {
+      $('intake-out').textContent = '–';
+      $('days-out').textContent = '–';
+      $('intake-note').textContent = '';
+      $('diet-text').textContent = 'Syömisen laskelmaa ei näytetä, koska simulaattori ei laske laihdutusta tästä lähtötilanteesta.';
+      return;
+    }
+    const auto = S.intake == null;
+    const rec = Math.max(0, P ? P.weeks[0].intake : NOW.tdee);
+    // automaattitilassa lasketaan suunnitelman tarkalla luvulla; liukusäädin näyttää lähimmän 50 kcal:n kohdan
+    if (auto) el.value = clamp(Math.round(rec / 50) * 50, 0, 5000);
+    const I = auto ? rec : S.intake;
+    const days = S.days;
+    setFill(el); setFill(dEl);
+    $('intake-out').textContent = I <= 0 ? 'paasto · 0 kcal' : `${auto ? '≈ ' : ''}${auto ? k10(I) : f0(I)} kcal/vrk`;
+    $('days-out').textContent = days === 1 ? '1 päivä' : `${f0(days)} päivää`;
+    const dc = Model.dietCheck(inputs(), I, days);
+    $('intake-note').innerHTML = auto
+      ? (P ? 'Suunnitelman ensimmäisen viikon mukainen. Siirrä liukua kokeillaksesi omaasi.' : 'Kulutuksen tasolla. Siirrä liukua kokeillaksesi omaasi.')
+      : `Ylläpitokulutus ≈ ${k10(dc.tdee0)} kcal/vrk · <button type="button" class="linkbtn" data-act="intake-auto">${P ? 'palauta suunnitelman mukaiseksi' : 'palauta kulutuksen tasolle'}</button>`;
+    const recD = P ? P.weeks[0].d : 0;
+    const scale = Math.max(dc.D, dc.emax, recD, 1) * 1.12;
+    const pc = v => clamp(v / scale * 100, 0, 100);
+    const fatSeg = $('sb-fat'), leanSeg = $('sb-lean');
+    fatSeg.style.left = '0%';
+    fatSeg.style.width = pc(dc.fatE) + '%';
+    fatSeg.style.borderRadius = dc.leanE > 0 ? '5px 0 0 5px' : '5px';
+    leanSeg.style.left = pc(dc.emax) + '%';
+    leanSeg.style.width = pc(dc.leanE) + '%';
+    leanSeg.hidden = dc.leanE <= 0;
+    $('sb-cap').style.left = pc(dc.emax) + '%';
+    $('sb-rec').style.left = pc(recD) + '%';
+    $('sb-rec').hidden = !P;
+    const per = days === 1 ? 'vuorokaudessa' : `${f0(days)} päivässä`;
+    let t;
+    // syömisen vähentäminen pienentää kulutusta heti (ruoan lämpövaikutus) ja vähitellen (säästöliekki)
+    const drop = dc.tdee0 - dc.tdee;
+    const lower = drop >= 5
+      ? `Kulutus on jakson aikana keskimäärin ${k10(dc.tdee)} kcal/vrk eli ${k10(drop)} vähemmän kuin ylläpidolla: ruoan lämpövaikutus −${k10(dc.tefDrop)}` +
+        (dc.at <= -5 ? ` ja säästöliekki ${sgn(dc.at)}` : '') + ' kcal/vrk. '
+      : '';
+    if (dc.D <= 0) {
+      t = `Energiansaanti on kulutuksen (≈ ${k10(dc.tdee)} kcal/vrk) tasolla tai yli, joten vajetta ei synny.`;
+    } else if (dc.leanE <= 0) {
+      t = lower + `Vaje on <b>${k10(dc.D)} kcal/vrk</b> eli ${f0(dc.D / dc.emax * 100)} % rasvavaraston katosta (${k10(dc.emax)} kcal/vrk). Mallin mukaan koko vaje katetaan rasvasta: ${per} noin <b>${f2(dc.fatKg)} kg rasvaa</b>.`;
+      if (P && dc.D > recD * 1.05) t += ` Suunnitelman vaje on ${k10(recD)} kcal/vrk, ja sitä rajaa ${limText(P.weeks[0].limiter)}.`;
+    } else {
+      t = lower + `Vaje on <b>${k10(dc.D)} kcal/vrk</b> ja ylittää rasvavaraston katon (${k10(dc.emax)} kcal/vrk) <b>${k10(dc.leanE)} kcal:lla</b>. ` +
+        `Alpertin mallissa ylitys katetaan rasvattomasta massasta. ${per[0].toUpperCase() + per.slice(1)} menetät noin <b>${f2(dc.fatKg)} kg rasvaa</b> ja <b>${f1(dc.leanKg)} kg rasvatonta massaa</b> (${f0(dc.leanGDay)} g/vrk).`;
+    }
+    if (dc.fast && dc.leanE > 0) t += ' Paastossa glykogeenivarastot ja niihin sitoutunut vesi tyhjenevät, ja ensimmäisinä päivinä proteiinia käytetään enemmän glukoosin tuotantoon. Osa mallin rasvattomasta menetyksestä on siis glykogeenia ja vettä, joka palautuu syödessä.';
+    else if (dc.fast) t += ' Paastossa glykogeenivarastot ja niihin sitoutunut vesi tyhjenevät silti, joten vaaka laskee alussa enemmän kuin rasva selittää. Ne palautuvat syödessä.';
+    else if (dc.vlcd) t += ' Alle 800 kcal:n ruokavaliota suositellaan vain lääkärin seurannassa.';
+    else if (dc.belowFloor) t += ` Energiansaanti on alle yleisen suosituksen alarajan (${f0(K.KCAL_FLOOR[S.sex])} kcal/vrk).`;
+    $('diet-text').innerHTML = t;
+  }
+
+  /* ---------- kuva 1 (essee) ---------- */
+  const EX_PLANS = ['varovainen', 'suositeltu', 'katto'].map(p => Model.plan({ sex: 'm', age: 30, h: 185, w: 105, bf: 0.315, pal: 3, target: 80, pace: p, train: true, at: EXAMPLE.at / 100 }));
+  function drawFig1() {
+    const host = $('fig1-chart');
+    const W = Math.max(280, Math.round(host.clientWidth || 600));
+    const narrow = W < 520;
+    const H = narrow ? 230 : 270;
+    const m = { l: 36, r: 12, t: 22, b: 26 };
+    const Tm = Math.ceil(Math.max(...EX_PLANS.map(p => p.total)) / 5) * 5;
+    const iw = W - m.l - m.r, ih = H - m.t - m.b;
+    const x = t => m.l + t / Tm * iw;
+    const lo = 76, hi = 106;
+    const y = v => m.t + (1 - (v - lo) / (hi - lo)) * ih;
+    let s = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="Esimerkin painokäyrät kolmella tahdilla">`;
+    for (let v = 80; v <= 105; v += 5) {
+      s += `<line class="gridl" x1="${m.l}" x2="${W - m.r}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}"/>`;
+      s += `<text class="ax" x="${m.l - 7}" y="${(y(v) + 3.5).toFixed(1)}" text-anchor="end">${v}</text>`;
+    }
+    s += `<rect class="zone" x="${m.l}" y="${y(83).toFixed(1)}" width="${iw}" height="${(y(80) - y(83)).toFixed(1)}"/>`;
+    s += `<text class="zlab" x="${m.l + 6}" y="${(y(83) + 12).toFixed(1)}">viimeiset 3 kg</text>`;
+    s += `<line class="tline" x1="${m.l}" x2="${W - m.r}" y1="${y(80).toFixed(1)}" y2="${y(80).toFixed(1)}"/>`;
+    s += `<line class="base" x1="${m.l}" x2="${W - m.r}" y1="${(m.t + ih).toFixed(1)}" y2="${(m.t + ih).toFixed(1)}"/>`;
+    for (let t = 0; t <= Tm; t += 10) s += `<text class="ax" x="${x(t).toFixed(1)}" y="${H - 8}" text-anchor="middle">${t}</text>`;
+    s += `<text class="ax-t" x="${m.l - 7}" y="${H - 8}" text-anchor="end">vk</text>`;
+    s += `<text class="ax-t" x="${m.l - 7}" y="${m.t - 10}" text-anchor="end">kg</text>`;
+    const widths = [1.75, 2.75, 1.75];
+    const ends = [];
+    EX_PLANS.forEach((p, k) => {
+      const pts = p.weeks.map(w => [x(w.t0), y(w.W)]).concat([[x(p.total), y(p.end.W)]]);
+      s += `<path class="pl o${k + 1}" stroke-width="${widths[k]}" d="${pts.map((q, i) => (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join('')}"/>`;
+      ends.push({ k, x: x(p.total), total: p.total });
+    });
+    ends.sort((a, b) => a.x - b.x);
+    let lastX = -1e9, row = 0;
+    ends.forEach(e => {
+      const label = f0(Math.round(e.total)) + (narrow ? '' : ' vk');
+      const wpx = label.length * 6.3;
+      row = (e.x - wpx / 2 < lastX + 4) ? row + 1 : 0;
+      lastX = e.x + wpx / 2;
+      s += `<circle class="dot" cx="${e.x.toFixed(1)}" cy="${y(80).toFixed(1)}" r="4" style="fill:var(--o${e.k + 1})"/>`;
+      s += `<text class="ax" x="${e.x.toFixed(1)}" y="${(y(80) + 15 + row * 11).toFixed(1)}" text-anchor="middle">${label}</text>`;
+    });
+    s += `<line class="cross" id="f1-x" x1="-10" x2="-10" y1="${m.t}" y2="${m.t + ih}" opacity="0"/>`;
+    s += `<rect x="${m.l}" y="0" width="${iw}" height="${m.t + ih}" fill="transparent"/>`;
+    s += '</svg>';
+    host.innerHTML = s;
+    const svg = host.firstChild;
+    const show = ev => {
+      const r = svg.getBoundingClientRect();
+      if (!r.width) return;
+      const px = (ev.clientX - r.left) * (W / r.width);
+      const t = clamp(Math.round((px - m.l) / iw * Tm), 0, Tm);
+      const lx = $('f1-x');
+      lx.setAttribute('x1', x(t).toFixed(1)); lx.setAttribute('x2', x(t).toFixed(1)); lx.setAttribute('opacity', '1');
+      const names = ['varovainen', 'suositeltu', 'katto'];
+      $('fig1-tip').textContent = `${t} vk: ` + EX_PLANS.map((p, k) => `${names[k]} ${f1(Model.at(p, Math.min(t, p.total)).W)} kg`).join(' · ');
+    };
+    svg.addEventListener('pointermove', show);
+    svg.addEventListener('pointerdown', show);
+    svg.addEventListener('pointerleave', () => { $('f1-x').setAttribute('opacity', '0'); });
+  }
+
+  /* ---------- käynnistys ---------- */
+  syncInputs();
+  render();
+  drawFigGrid();
+  drawFig1();
+  scanSweep();
+  if (window.ResizeObserver) {
+    let w1 = 0, w2 = 0, w3 = 0;
+    new ResizeObserver(en => { const w = Math.round(en[0].contentRect.width); if (w !== w1) { w1 = w; drawChart(); } }).observe($('chart'));
+    new ResizeObserver(en => { const w = Math.round(en[0].contentRect.width); if (w !== w2) { w2 = w; drawFig1(); } }).observe($('fig1-chart'));
+    new ResizeObserver(en => { const r = en[0].contentRect; const k = Math.round(r.width) * 10000 + Math.round(r.height); if (k !== w3) { w3 = k; drawFigGrid(); } }).observe($('fig'));
+  } else {
+    window.addEventListener('resize', () => { drawChart(); drawFig1(); drawFigGrid(); });
+  }
+})();
+
+</script>
+</body>
+</html>
