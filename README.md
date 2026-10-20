@@ -2,7 +2,7 @@
 
 Simulaattori ja tiede-essee rasvavaraston energiansiirron ylärajasta: miksi laihdutuksen tahdin pitää hidastua, kun rasvaa on vähemmän, ja miten kulutus ja säästöliekki muuttuvat dieetin aikana.
 
-**Sivu:** https://KAYTTAJATUNNUS.github.io/rasvanpolton-katto/
+**Sivu:** https://juusoj.github.io/rasvanpolton-katto/
 
 ![Rasvanpolton katto](og-image.png)
 

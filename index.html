@@ -10,14 +10,14 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <!-- Linkkiesikatselu (WhatsApp, Facebook, Slack ym.) -->
-<link rel="canonical" href="https://JuusoJ.github.io/rasvanpolton-katto/">
+<link rel="canonical" href="https://juusoj.github.io/rasvanpolton-katto/">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fi_FI">
 <meta property="og:site_name" content="Rasvanpolton katto">
 <meta property="og:title" content="Rasvanpolton katto – simulaattori ja tiede-essee">
 <meta property="og:description" content="Paljonko vajetta rasvavarastosi kestää? Säädä omat mittasi ja katso viikkokäyrä, kulutuksen lasku ja tutkimusten luvut.">
-<meta property="og:url" content="https://JuusoJ.github.io/rasvanpolton-katto/">
-<meta property="og:image" content="https://JuusoJ.github.io/rasvanpolton-katto/og-image.png">
+<meta property="og:url" content="https://juusoj.github.io/rasvanpolton-katto/">
+<meta property="og:image" content="https://juusoj.github.io/rasvanpolton-katto/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Rasvanpolton katto: painokäyrä, jonka tahti hidastuu tavoitetta kohti">
@@ -107,11 +107,14 @@ button { font: inherit; color: inherit; }
 .sim-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding-block: 4px; border-top: 2px solid var(--ink); padding-top: 10px; }
 .sim-state { font-size: .85rem; color: var(--ink-2); }
 .sim-state b { font-weight: 600; color: var(--ink); }
+.ex-pick { margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.ex-lbl { font-size: .82rem; color: var(--ink-2); margin-right: 2px; }
 .ghost-btn {
-  margin-left: auto; border: 1px solid var(--rule); background: var(--card); border-radius: 999px;
-  padding: 6px 12px; font-size: .82rem; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--rule); background: var(--card); border-radius: 999px;
+  padding: 6px 12px; font-size: .82rem; font-weight: 500; cursor: pointer; font-variant-numeric: tabular-nums;
 }
 .ghost-btn:hover { border-color: var(--accent); color: var(--accent); }
+.ghost-btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .ghost-btn:focus-visible, .step:focus-visible, .play:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .sim-top { display: grid; grid-template-columns: minmax(250px, 320px) minmax(0, 1fr); gap: 20px; align-items: start; }
@@ -319,7 +322,7 @@ table.data tr.sel td { background: var(--accent-wash); }
   line-height: 1.1; letter-spacing: -.005em; margin: 2.1em 0 0; text-wrap: balance;
 }
 .essay h2 + p { margin-top: .6em; }
-.essay .lede { font-size: 1.2rem; line-height: 1.55; }
+.essay > h2:first-child { margin-top: 0; }
 .essay ul { padding-left: 1.2em; margin-bottom: 0; }
 .essay li + li { margin-top: .35em; }
 .cite { font-family: var(--font-mono); font-size: .74em; text-decoration: none; padding-inline: 1px; white-space: nowrap; }
@@ -404,7 +407,11 @@ table.data tr.sel td { background: var(--accent-wash); }
   <div class="sim-bar">
     <span class="eyebrow">Simulaattori</span>
     <span class="sim-state" id="sim-state"><b>Esimerkkiarvot</b> · säädä omiksesi</span>
-    <button type="button" class="ghost-btn" id="reset">Palauta esimerkki</button>
+    <div class="ex-pick" role="group" aria-label="Esimerkit">
+      <span class="ex-lbl">Esimerkki</span>
+      <button type="button" class="ghost-btn" data-ex="0" aria-pressed="false" title="Mies, 182 cm, 95 kg, rasvaa 18 %, kohtalainen aktiivisuus">95 → 82 kg</button>
+      <button type="button" class="ghost-btn" data-ex="1" aria-pressed="false" title="Esseen kamppailija: 185 cm, 105 kg, rasvaa 31,5 %, kova aktiivisuus">105 → 80 kg</button>
+    </div>
   </div>
 
   <div class="sim-top">
@@ -616,7 +623,6 @@ table.data tr.sel td { background: var(--accent-wash); }
 </section>
 
 <article class="essay" id="essee">
-  <p class="lede">Laihduttamista on helppo ajatella tuotantona. Jos pelto tuottaa vuodessa tietyn sadon, kaksinkertainen tilaus ylittää kapasiteetin, ja jostain on joustettava. Ihmiskehossa vertaus pitää paikkansa vain osittain, ja juuri ero selittää, miksi laihdutuksen tahdin pitää hidastua loppua kohden.</p>
 
   <h2>Varasto eikä sato</h2>
   <p>Rasva on jo tuotettua ja varastoitua energiaa. Ratkaisevaa on, kuinka nopeasti varastosta voi purkaa energiaa ja mitä keho tekee, kun tarve on purkunopeutta suurempi.</p>
@@ -677,7 +683,7 @@ table.data tr.sel td { background: var(--accent-wash); }
     </div>
     <figcaption><b>Kuva 1.</b> Esimerkin painokäyrät kolmella tahdilla. Varjostettu vyöhyke on viimeinen 3 kg (83–80 kg), ja käyrien päissä oleva luku on viikko, jolla tavoite saavutetaan. Alussa käyrät kulkevat päällekkäin, koska vajetta rajaa 1 %:n sääntö. Ero syntyy vasta, kun rasvavaraston katto alkaa rajata.</figcaption>
   </figure>
-  <p><button type="button" class="cta" id="load-example">Avaa esimerkki simulaattorissa ↑</button></p>
+  <p><button type="button" class="cta" id="load-example">Avaa tämä esimerkki simulaattorissa ↑</button></p>
   <p>Kulutus laskee matkan aikana noin 3&nbsp;360&nbsp;kcal:sta 2&nbsp;630&nbsp;kcal:iin vuorokaudessa. Lepoaineenvaihdunnan osuus laskusta on noin 120&nbsp;kcal, liikunnan 250&nbsp;kcal, ruoan lämpövaikutuksen 120&nbsp;kcal ja säästöliekin oletusvoimakkuudella 230&nbsp;kcal. Suositellulla tahdilla syödään ensimmäisellä viikolla noin 1&nbsp;760&nbsp;kcal vuorokaudessa. Syöminen vähenee ensin noin 1&nbsp;560&nbsp;kcal:iin viikolla 11, koska kulutus laskee mutta vaje pysyy 1&nbsp;%:n säännön mukaisena. Sen jälkeen syöminen kasvaa noin 2&nbsp;160&nbsp;kcal:iin viimeisellä viikolla, koska katto pienentää vajetta nopeammin kuin kulutus laskee.</p>
   <p>Kamppailulajeissa kisapainoon päästään usein osittain akuuteilla keinoilla juuri ennen punnitusta, esimerkiksi vähentämällä kehon nestettä <a class="cite" href="#r10">[10]</a>. Tämän esseen käyrät kuvaavat vain kudosta. Akuutti painonpudotus on oma, riskejä sisältävä käytäntönsä, jota simulaattori ei mallinna.</p>
   <p>Kehonrakennuksen lavakunto on vielä tiukempi. Rossow työryhmineen seurasi luonnollista kehonrakentajaa, jonka rasvaprosentti laski kuudessa kuukaudessa 14,8&nbsp;%:sta 4,5&nbsp;%:iin. Samaan aikaan testosteroni laski 9,22:sta 2,27&nbsp;ng/ml:aan ja syke 53:sta 27 lyöntiin minuutissa. Testosteroni palautui kisan jälkeen lähtötasolle <a class="cite" href="#r11">[11]</a>. Simulaattorin rasvan alarajan oletus on siksi 3&nbsp;% miehillä ja 11&nbsp;% naisilla, ja rajaa voi nostaa. Jos tavoite vaatii enemmän, ero näkyy rasvattoman massan menetyksenä, ja urheilijoiden tavallisen vaihteluvälin alittavasta ennusteesta tulee varoitus.</p>
@@ -1195,10 +1201,18 @@ const Body = (() => {
   const reduced = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
   const K = Model.K;
 
-  const EXAMPLE = { sex: 'm', age: 30, h: 185, w: 105, bf: 31.5, pal: 3, corr: 0, at: 50, target: 80, pace: 'suositeltu', train: true, intake: null, days: 7, floorM: 3, floorF: 11 };
+  /* Esimerkit: 0 = oletus (95 → 82 kg), 1 = esseen kamppailija (105 → 80 kg; taulukko 1 ja kuva 1). */
+  const COMMON = { sex: 'm', age: 30, corr: 0, at: 50, pace: 'suositeltu', train: true, intake: null, days: 7, floorM: 3, floorF: 11 };
+  const EXAMPLES = [
+    { ...COMMON, h: 182, w: 95, bf: 18, pal: 2, target: 82 },
+    { ...COMMON, h: 185, w: 105, bf: 31.5, pal: 3, target: 80 }
+  ];
+  const EXAMPLE = EXAMPLES[0];
+  const ESSAY_EX = EXAMPLES[1];
   const AT_LABELS = { 0: 'Pois', 25: 'Pieni', 50: 'Varovainen', 75: 'Kohtalainen', 100: 'Keskitaso', 125: 'Suuri', 150: 'Voimakas' };
   const FLOOR_RANGE = { m: [3, 12], f: [11, 20] };
-  const STORE = 'rasvanpolton-katto:v2';
+  const STORE = 'rasvanpolton-katto:v3';
+  const OLD_STORE = 'rasvanpolton-katto:v2';   // v2:n oletus oli esseen esimerkki
   const ACT = [
     ['Istuva', 'vähän liikuntaa'],
     ['Kevyt', '1–3 treeniä viikossa'],
@@ -1223,9 +1237,19 @@ const Body = (() => {
 
   function load() {
     try {
+      let s = null;
       const raw = localStorage.getItem(STORE);
-      if (!raw) return null;
-      const s = JSON.parse(raw);
+      if (raw) s = JSON.parse(raw);
+      else {
+        // vanhan version tallennus: koskematon vanha oletus vaihtuu uuteen oletukseen, omat arvot säilyvät
+        const old = localStorage.getItem(OLD_STORE);
+        if (old) {
+          const o2 = JSON.parse(old);
+          const untouched = ['sex', 'age', 'h', 'w', 'bf', 'pal', 'target', 'pace'].every(k => o2[k] === ESSAY_EX[k]);
+          if (!untouched) s = o2;
+        }
+      }
+      if (!s || typeof s !== 'object') return null;
       const o = { ...EXAMPLE };
       for (const f of Object.values(FIELDS)) {
         if (f.k && typeof s[f.k] === 'number' && isFinite(s[f.k])) o[f.k] = clamp(s[f.k], f.min, f.max);
@@ -1251,7 +1275,9 @@ const Body = (() => {
   let MIX = S.sex === 'f' ? 1 : 0, mixRaf = 0, playing = 0, FS = 4.5, CH = null;
   const shown = () => hover == null ? pin : hover;
 
-  const isExample = () => ['sex', 'age', 'h', 'w', 'bf', 'pal', 'corr', 'at', 'target', 'pace', 'train', 'floorM', 'floorF'].every(k => S[k] === EXAMPLE[k]);
+  /* Mikä esimerkki on käytössä (indeksi) vai omat arvot (−1). */
+  const exampleIndex = () => EXAMPLES.findIndex(ex =>
+    ['sex', 'age', 'h', 'w', 'bf', 'pal', 'corr', 'at', 'target', 'pace', 'train', 'floorM', 'floorF'].every(k => S[k] === ex[k]));
   const floorPct = () => S.sex === 'm' ? S.floorM : S.floorF;
   const pctTxt = v => N1.format(v).replace(',0', '');
   const ratePct = () => ({ varovainen: '0,7', suositeltu: '1', katto: '1', yli: '1,5' })[S.pace];
@@ -1327,13 +1353,13 @@ const Body = (() => {
   document.querySelectorAll('input[name=train]').forEach(r => r.addEventListener('change', () => {
     S.train = r.value === 'y'; stopPlay(); render();
   }));
-  function loadExample(scroll) {
-    S = { ...EXAMPLE }; stopPlay();
+  function loadExample(ex, scroll) {
+    S = { ...ex }; stopPlay();
     syncInputs(); render(); animateSex();
     if (scroll) $('simulaattori').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
   }
-  $('reset').addEventListener('click', () => loadExample(false));
-  $('load-example').addEventListener('click', () => loadExample(true));
+  document.querySelectorAll('[data-ex]').forEach(b => b.addEventListener('click', () => loadExample(EXAMPLES[Number(b.dataset.ex)], false)));
+  $('load-example').addEventListener('click', () => loadExample(ESSAY_EX, true));
   $('week').addEventListener('input', () => { stopPlay(); setPin(parseInt($('week').value, 10) || 0); });
   $('play').addEventListener('click', togglePlay);
   $('st-now').addEventListener('click', () => { stopPlay(); setPin(0); });
@@ -1398,9 +1424,11 @@ const Body = (() => {
     updateTable();
     updateWeekUI();
     updateDiet();
-    $('sim-state').innerHTML = isExample()
-      ? '<b>Esimerkkiarvot</b> · säädä omiksesi'
+    const ei = exampleIndex();
+    $('sim-state').innerHTML = ei === 0 ? '<b>Esimerkkiarvot</b> · säädä omiksesi'
+      : ei === 1 ? '<b>Esseen esimerkki</b> · säädä omiksesi'
       : '<b>Omat arvot</b> · tallentuvat vain tähän selaimeen';
+    document.querySelectorAll('[data-ex]').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.ex) === ei)));
     save();
   }
 
@@ -1989,7 +2017,10 @@ const Body = (() => {
   }
 
   /* ---------- kuva 1 (essee) ---------- */
-  const EX_PLANS = ['varovainen', 'suositeltu', 'katto'].map(p => Model.plan({ sex: 'm', age: 30, h: 185, w: 105, bf: 0.315, pal: 3, target: 80, pace: p, train: true, at: EXAMPLE.at / 100 }));
+  // kuva 1 kuvaa aina esseen esimerkkiä (105 → 80 kg) riippumatta simulaattorin arvoista
+  const EX_PLANS = ['varovainen', 'suositeltu', 'katto'].map(p => Model.plan({
+    sex: ESSAY_EX.sex, age: ESSAY_EX.age, h: ESSAY_EX.h, w: ESSAY_EX.w, bf: ESSAY_EX.bf / 100, pal: ESSAY_EX.pal,
+    target: ESSAY_EX.target, pace: p, train: true, at: ESSAY_EX.at / 100, bfMin: ESSAY_EX.floorM / 100 }));
   function drawFig1() {
     const host = $('fig1-chart');
     const W = Math.max(280, Math.round(host.clientWidth || 600));
